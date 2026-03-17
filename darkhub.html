@@ -496,15 +496,68 @@
 </footer>
 
 <script>
-  const STRIPE_PUBLIC_KEY = 'pk_test_REEMPLAZA_CON_TU_CLAVE';
-  const PRICE_ID          = 'price_REEMPLAZA_CON_PRICE_ID_DARKHUB';
+  // ── PAYMENT MODAL JS ──────────────────────────
+  function openPayModal()  { 
+    document.getElementById('pay-overlay').classList.add('open'); 
+    document.body.style.overflow='hidden'; 
+  }
+  function closePayModal(e) {
+    if (e && e.target !== document.getElementById('pay-overlay')) return;
+    document.getElementById('pay-overlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+  document.addEventListener('keydown', function(e) { 
+    if(e.key==='Escape') { 
+      document.getElementById('pay-overlay').classList.remove('open'); 
+      document.body.style.overflow=''; 
+    } 
+  });
 
-  
+  function toggleSpei() {
+    const d = document.getElementById('spei-details');
+    const a = document.getElementById('spei-arrow');
+    d.classList.toggle('open');
+    a.textContent = d.classList.contains('open') ? '↑' : '↓';
+  }
 
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  function toggleCrypto() {
+    const d = document.getElementById('crypto-details');
+    const a = document.getElementById('crypto-arrow');
+    d.classList.toggle('open');
+    a.textContent = d.classList.contains('open') ? '↑' : '↓';
+  }
+
+  function copyText(text, btnId) {
+    navigator.clipboard.writeText(text).then(function() {
+      const btn = document.getElementById(btnId);
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copiado';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // Lightbox
+  const lb = document.createElement('div');
+  lb.className = 'lightbox';
+  lb.innerHTML = '<button class="lightbox-close" onclick="closeLightbox()">✕</button><img id="lb-img" src="" alt="">';
+  document.body.appendChild(lb);
+  lb.addEventListener('click', function(e) { if (e.target === lb) closeLightbox(); });
+  function openLightbox(item) {
+    const img = item.querySelector('img');
+    if (!img) return;
+    document.getElementById('lb-img').src = img.src;
+    lb.classList.add('open');
+  }
+  function closeLightbox() { lb.classList.remove('open'); }
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { 
+      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } 
+    });
   }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+  document.querySelectorAll('.reveal').forEach(function(r) { obs.observe(r); });
 </script>
 
 <!-- ── PAYMENT MODAL ── -->
