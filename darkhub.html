@@ -388,7 +388,7 @@
       const { error } = await stripe.redirectToCheckout({
         lineItems: [{ price: PRICE_ID, quantity: 1 }],
         mode: 'payment',
-        successUrl: window.location.origin + '/gracias.html?plan=darkhub',
+        successUrl: window.location.href.replace(/\/[^\/]*$/, '') + '/gracias.html?plan=darkhub',
         cancelUrl:  window.location.href,
       });
       if (error) throw error;
