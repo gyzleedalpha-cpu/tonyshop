@@ -240,6 +240,128 @@
   .hero-inner { grid-template-columns: 1fr auto auto !important; }
   @media (max-width: 900px) { .hero-inner { grid-template-columns: 1fr !important; } }
 
+
+  /* ── PAYMENT MODAL ───────────────────────────── */
+  .pay-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeOverlay 0.2s ease;
+  }
+  .pay-overlay.open { display: flex; }
+  @keyframes fadeOverlay { from { opacity:0; } to { opacity:1; } }
+
+  .pay-modal {
+    background: #141414;
+    border: 1px solid rgba(245,197,24,0.2);
+    border-radius: 20px; padding: 32px 28px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+    animation: slideModal 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+  }
+  @keyframes slideModal {
+    from { transform: translateY(30px) scale(0.95); opacity:0; }
+    to   { transform: none; opacity:1; }
+  }
+  .pay-modal-close {
+    position: absolute; top: 16px; right: 18px;
+    background: none; border: none; color: #555;
+    font-size: 1.4rem; cursor: pointer; line-height:1;
+    transition: color 0.2s;
+  }
+  .pay-modal-close:hover { color: var(--white); }
+
+  .pay-modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; letter-spacing: 2px;
+    margin-bottom: 6px; color: var(--white);
+  }
+  .pay-modal-sub {
+    font-size: 0.8rem; color: #666;
+    margin-bottom: 24px;
+  }
+  .pay-modal-sub span { color: var(--gold); font-weight: 700; }
+
+  .pay-method {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    text-decoration: none; color: var(--white);
+    margin-bottom: 10px;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .pay-method:hover {
+    border-color: rgba(245,197,24,0.35);
+    background: rgba(245,197,24,0.05);
+    transform: translateX(4px);
+  }
+  .pay-method:last-child { margin-bottom: 0; }
+  .pay-method-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .pay-method-info { flex: 1; }
+  .pay-method-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; }
+  .pay-method-desc { font-size: 0.75rem; color: #666; }
+  .pay-method-arrow { color: #444; font-size: 1rem; transition: color 0.2s; }
+  .pay-method:hover .pay-method-arrow { color: var(--gold); }
+
+  /* SPEI sub-modal */
+  .spei-details {
+    display: none; background: #0e0e0e;
+    border: 1px solid rgba(245,197,24,0.15);
+    border-radius: 12px; padding: 20px; margin-top: 10px;
+  }
+  .spei-details.open { display: block; }
+  .spei-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.85rem;
+  }
+  .spei-row:last-child { border-bottom: none; }
+  .spei-label { color: #666; }
+  .spei-value { color: var(--white); font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .copy-btn {
+    background: rgba(245,197,24,0.1); border: 1px solid rgba(245,197,24,0.2);
+    color: var(--gold); font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .copy-btn:hover { background: rgba(245,197,24,0.2); }
+  .copy-btn.copied { background: rgba(0,200,100,0.15); border-color: rgba(0,200,100,0.3); color: #4ade80; }
+
+  /* CRYPTO sub-modal */
+  .crypto-details {
+    display: none; background: #0e0e0e;
+    border: 1px solid rgba(245,197,24,0.15);
+    border-radius: 12px; padding: 20px; margin-top: 10px;
+    text-align: center;
+  }
+  .crypto-details.open { display: block; }
+  .crypto-id {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; color: var(--gold); letter-spacing: 3px;
+    margin: 12px 0 4px;
+  }
+  .crypto-sub { font-size: 0.75rem; color: #555; margin-bottom: 16px; }
+  .crypto-copy-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(245,197,24,0.1); border: 1px solid rgba(245,197,24,0.25);
+    color: var(--gold); font-size: 0.8rem; font-weight: 700;
+    padding: 8px 18px; border-radius: 8px; cursor: pointer;
+    transition: background 0.2s; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .crypto-copy-btn:hover { background: rgba(245,197,24,0.2); }
+  .crypto-copy-btn.copied { background: rgba(0,200,100,0.15); border-color: rgba(0,200,100,0.3); color: #4ade80; }
+
+  .pay-secure { font-size: 0.72rem; color: #444; text-align: center; margin-top: 18px; }
+
 </style>
 </head>
 <body>
@@ -274,7 +396,7 @@
       <div class="price-amount">$200 <span class="price-currency">MXN</span></div>
       <div class="price-period">Pago único · Acceso de por vida</div>
       <div class="price-divider"></div>
-      <button class="buy-btn" id="buy-btn-main" onclick="handleCheckout()">
+      <button class="buy-btn" onclick="openPayModal()">
         <span class="btn-text">💳 Pagar ahora</span>
         <div class="spinner"></div>
       </button>
@@ -357,7 +479,7 @@
   <div class="cta-bottom reveal">
     <h2>¿Listo para entrar al <span>DarkHub</span>?</h2>
     <p>Pago único de por vida. Entra ahora y asegura tu lugar antes de que se llenen las plazas.</p>
-    <button class="buy-btn" id="buy-btn-bottom" onclick="handleCheckout()">
+    <button class="buy-btn" onclick="openPayModal()">
       <span class="btn-text">💳 Comprar — $200 MXN</span>
       <div class="spinner"></div>
     </button>
@@ -377,31 +499,89 @@
   const STRIPE_PUBLIC_KEY = 'pk_test_REEMPLAZA_CON_TU_CLAVE';
   const PRICE_ID          = 'price_REEMPLAZA_CON_PRICE_ID_DARKHUB';
 
-  const stripe = Stripe(STRIPE_PUBLIC_KEY);
-
-  async function handleCheckout() {
-    const btns   = document.querySelectorAll('.buy-btn');
-    const errors = document.querySelectorAll('.stripe-error');
-    btns.forEach(b => { b.classList.add('loading'); b.disabled = true; });
-    errors.forEach(e => { e.style.display = 'none'; });
-    try {
-      const { error } = await stripe.redirectToCheckout({
-        lineItems: [{ price: PRICE_ID, quantity: 1 }],
-        mode: 'payment',
-        successUrl: window.location.href.replace(/\/[^\/]*$/, '') + '/gracias.html?plan=darkhub',
-        cancelUrl:  window.location.href,
-      });
-      if (error) throw error;
-    } catch (err) {
-      errors.forEach(e => { e.textContent = '❌ ' + (err.message || 'Error al procesar el pago.'); e.style.display = 'block'; });
-      btns.forEach(b => { b.classList.remove('loading'); b.disabled = false; });
-    }
-  }
+  
 
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
 </script>
+
+<!-- ── PAYMENT MODAL ── -->
+<div class="pay-overlay" id="pay-overlay" onclick="closePayModal(event)">
+  <div class="pay-modal">
+    <button class="pay-modal-close" onclick="closePayModal()">✕</button>
+    <div class="pay-modal-title">¿Cómo quieres pagar?</div>
+    <div class="pay-modal-sub">Total: <span>$200 MXN</span></div>
+
+    <!-- Stripe -->
+    <a class="pay-method" href="https://buy.stripe.com/5kQaEWfDP3RQ09tdn02ZO0b" target="_blank">
+      <div class="pay-method-icon" style="background:rgba(99,91,255,0.15);">💳</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">Tarjeta de débito / crédito</div>
+        <div class="pay-method-desc">Pago seguro con Stripe</div>
+      </div>
+      <div class="pay-method-arrow">→</div>
+    </a>
+
+    <!-- PayPal -->
+    <a class="pay-method" href="https://www.paypal.me/ErnesAltss" target="_blank">
+      <div class="pay-method-icon" style="background:rgba(0,112,243,0.15);">🅿️</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">PayPal</div>
+        <div class="pay-method-desc">paypal.me/ErnesAltss</div>
+      </div>
+      <div class="pay-method-arrow">→</div>
+    </a>
+
+    <!-- SPEI -->
+    <div class="pay-method" onclick="toggleSpei()">
+      <div class="pay-method-icon" style="background:rgba(0,180,100,0.15);">🏦</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">Transferencia SPEI</div>
+        <div class="pay-method-desc">BBVA · Ver datos bancarios</div>
+      </div>
+      <div class="pay-method-arrow" id="spei-arrow">↓</div>
+    </div>
+    <div class="spei-details" id="spei-details">
+      <div class="spei-row">
+        <span class="spei-label">Banco</span>
+        <span class="spei-value">BBVA</span>
+      </div>
+      <div class="spei-row">
+        <span class="spei-label">Titular</span>
+        <span class="spei-value">Yanet M</span>
+      </div>
+      <div class="spei-row">
+        <span class="spei-label">CLABE</span>
+        <span class="spei-value">
+          012180015297098113
+          <button class="copy-btn" id="copy-clabe" onclick="copyText('012180015297098113', 'copy-clabe')">Copiar</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- Crypto -->
+    <div class="pay-method" onclick="toggleCrypto()">
+      <div class="pay-method-icon" style="background:rgba(245,197,24,0.12);">₿</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">Crypto — Binance Pay</div>
+        <div class="pay-method-desc">Binance ID · Ver datos</div>
+      </div>
+      <div class="pay-method-arrow" id="crypto-arrow">↓</div>
+    </div>
+    <div class="crypto-details" id="crypto-details">
+      <div style="font-size:0.75rem;color:#555;margin-bottom:4px;">BINANCE PAY ID</div>
+      <div class="crypto-id">431 782 492</div>
+      <div class="crypto-sub">Envía el pago exacto y manda comprobante a Tony</div>
+      <button class="crypto-copy-btn" id="copy-binance" onclick="copyText('431 782 492', 'copy-binance')">
+        📋 Copiar ID
+      </button>
+    </div>
+
+    <p class="pay-secure">🔒 Tras pagar, envía tu comprobante a Tony por Telegram</p>
+  </div>
+</div>
+
 </body>
 </html>
