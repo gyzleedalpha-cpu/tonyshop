@@ -1315,6 +1315,65 @@
     contain: layout style;
   }
 
+  /* ---- CURRENCY SWITCHER ---- */
+  .currency-switcher {
+    position: relative;
+    z-index: 1001;
+  }
+  .currency-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(245,197,24,0.08);
+    border: 1px solid rgba(245,197,24,0.2);
+    color: var(--gold); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 7px 14px; border-radius: 8px;
+    cursor: pointer; transition: all 0.3s;
+    font-family: 'Sora', sans-serif;
+  }
+  .currency-btn:hover {
+    background: rgba(245,197,24,0.15);
+    border-color: rgba(245,197,24,0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(245,197,24,0.1);
+  }
+  .currency-btn .flag { font-size: 1rem; }
+  .currency-btn .arrow-down {
+    font-size: 0.6rem; transition: transform 0.3s;
+  }
+  .currency-switcher.open .currency-btn .arrow-down { transform: rotate(180deg); }
+  .currency-dropdown {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    background: #141414; border: 1px solid rgba(245,197,24,0.2);
+    border-radius: 12px; padding: 6px;
+    min-width: 180px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 40px rgba(245,197,24,0.05);
+    opacity: 0; visibility: hidden;
+    transform: translateY(-8px) scale(0.96);
+    transition: all 0.3s cubic-bezier(0.23,1,0.32,1);
+    backdrop-filter: blur(20px);
+  }
+  .currency-switcher.open .currency-dropdown {
+    opacity: 1; visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+  .currency-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 8px;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    color: #aaa; transition: all 0.2s;
+    border: none; background: none; width: 100%;
+    font-family: 'Sora', sans-serif; text-align: left;
+  }
+  .currency-option:hover {
+    background: rgba(245,197,24,0.08); color: var(--white);
+  }
+  .currency-option.active {
+    background: rgba(245,197,24,0.12); color: var(--gold);
+  }
+  .currency-option .opt-flag { font-size: 1.1rem; }
+  .currency-option .opt-code { font-weight: 700; min-width: 34px; }
+  .currency-option .opt-name { color: #666; font-size: 0.72rem; font-weight: 400; }
+
   /* ---- RESPONSIVE ---- */
   @media (max-width: 900px) {
     .nav-links { display: none; }
@@ -1359,9 +1418,45 @@
     <li><a href="#planes">Planes</a></li>
     <li><a href="#testimonios">Testimonios</a></li>
   </ul>
-  <a class="nav-cta" href="https://t.me/tonyshop" target="_blank">
-    Unirse al VIP →
-  </a>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="currency-switcher" id="currency-switcher">
+      <button class="currency-btn" id="currency-btn">
+        <span class="flag">🇲🇽</span>
+        <span class="code">MXN</span>
+        <span class="arrow-down">▼</span>
+      </button>
+      <div class="currency-dropdown" id="currency-dropdown">
+        <button class="currency-option active" data-currency="MXN" data-flag="🇲🇽" data-rate="1">
+          <span class="opt-flag">🇲🇽</span>
+          <span class="opt-code">MXN</span>
+          <span class="opt-name">Peso Mexicano</span>
+        </button>
+        <button class="currency-option" data-currency="USD" data-flag="🇺🇸" data-rate="0.058">
+          <span class="opt-flag">🇺🇸</span>
+          <span class="opt-code">USD</span>
+          <span class="opt-name">Dólar</span>
+        </button>
+        <button class="currency-option" data-currency="ARS" data-flag="🇦🇷" data-rate="68.5">
+          <span class="opt-flag">🇦🇷</span>
+          <span class="opt-code">ARS</span>
+          <span class="opt-name">Peso Argentino</span>
+        </button>
+        <button class="currency-option" data-currency="COP" data-flag="🇨🇴" data-rate="242">
+          <span class="opt-flag">🇨🇴</span>
+          <span class="opt-code">COP</span>
+          <span class="opt-name">Peso Colombiano</span>
+        </button>
+        <button class="currency-option" data-currency="CLP" data-flag="🇨🇱" data-rate="56.8">
+          <span class="opt-flag">🇨🇱</span>
+          <span class="opt-code">CLP</span>
+          <span class="opt-name">Peso Chileno</span>
+        </button>
+      </div>
+    </div>
+    <a class="nav-cta" href="https://t.me/tonyshop" target="_blank">
+      Unirse al VIP →
+    </a>
+  </div>
   <button class="hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -2299,6 +2394,104 @@
       badgeBox.style.transition = 'transform 0.6s cubic-bezier(0.23,1,0.32,1)';
     });
   }
+
+  /* =============================================
+     15. CURRENCY SWITCHER — GLOBAL
+  ============================================= */
+  (function() {
+    const switcher = document.getElementById('currency-switcher');
+    const btn = document.getElementById('currency-btn');
+    const dropdown = document.getElementById('currency-dropdown');
+    const options = document.querySelectorAll('.currency-option');
+
+    // Original prices in MXN
+    const priceMap = [
+      { el: null, selector: '.temp-card:nth-child(1) .temp-price', base: 150 },
+      { el: null, selector: '.temp-card:nth-child(2) .temp-price', base: 250 },
+      { el: null, selector: '.temp-card:nth-child(3) .temp-price', base: 400 },
+      { el: null, selector: '.temp-card:nth-child(4) .temp-price', base: 1000 },
+      { el: null, selector: '.dh-price', base: 200 },
+    ];
+    priceMap.forEach(p => { p.el = document.querySelector(p.selector); });
+
+    let currentCurrency = 'MXN';
+
+    function formatPrice(amount, currency) {
+      if (currency === 'COP' || currency === 'CLP' || currency === 'ARS') {
+        return '$' + Math.round(amount).toLocaleString('es');
+      }
+      if (currency === 'USD') {
+        return '$' + amount.toFixed(2);
+      }
+      return '$' + Math.round(amount).toLocaleString('es');
+    }
+
+    function switchCurrency(currency, rate, flag) {
+      currentCurrency = currency;
+      priceMap.forEach(p => {
+        if (!p.el) return;
+        const converted = p.base * rate;
+        const currencySpan = p.el.querySelector('.temp-currency');
+        // Animate the price change
+        p.el.style.transition = 'transform 0.3s, opacity 0.3s';
+        p.el.style.transform = 'scale(0.8)';
+        p.el.style.opacity = '0.3';
+        setTimeout(() => {
+          p.el.childNodes[0].textContent = formatPrice(converted, currency) + ' ';
+          if (currencySpan) currencySpan.textContent = currency;
+          p.el.style.transform = 'scale(1)';
+          p.el.style.opacity = '1';
+        }, 150);
+      });
+
+      // Update button
+      btn.querySelector('.flag').textContent = flag;
+      btn.querySelector('.code').textContent = currency;
+
+      // Update active state
+      options.forEach(o => o.classList.remove('active'));
+      document.querySelector(`.currency-option[data-currency="${currency}"]`).classList.add('active');
+
+      // Save preference
+      try { localStorage.setItem('tonyshop-currency', currency); } catch(e) {}
+
+      // Close dropdown
+      switcher.classList.remove('open');
+    }
+
+    // Toggle dropdown
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      switcher.classList.toggle('open');
+    });
+
+    // Click options
+    options.forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currency = opt.dataset.currency;
+        const rate = parseFloat(opt.dataset.rate);
+        const flag = opt.dataset.flag;
+        switchCurrency(currency, rate, flag);
+      });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', () => {
+      switcher.classList.remove('open');
+    });
+
+    // Restore saved preference
+    try {
+      const saved = localStorage.getItem('tonyshop-currency');
+      if (saved && saved !== 'MXN') {
+        const opt = document.querySelector(`.currency-option[data-currency="${saved}"]`);
+        if (opt) {
+          switchCurrency(saved, parseFloat(opt.dataset.rate), opt.dataset.flag);
+        }
+      }
+    } catch(e) {}
+  })();
 </script>
 </body>
 </html>

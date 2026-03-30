@@ -1458,6 +1458,42 @@
     .comparison-table thead th,
     .comparison-table td { padding: 12px 10px; }
   }
+
+/* ---- CURRENCY SWITCHER ---- */
+.currency-switcher { position: relative; z-index: 1001; }
+.currency-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.2);
+  color: var(--gold); font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 7px 14px; border-radius: 8px; cursor: pointer;
+  transition: all 0.3s; font-family: 'Sora', sans-serif;
+}
+.currency-btn:hover { background: rgba(245,197,24,0.15); border-color: rgba(245,197,24,0.4); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(245,197,24,0.1); }
+.currency-btn .flag { font-size: 1rem; }
+.currency-btn .arrow-down { font-size: 0.6rem; transition: transform 0.3s; }
+.currency-switcher.open .currency-btn .arrow-down { transform: rotate(180deg); }
+.currency-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: #141414; border: 1px solid rgba(245,197,24,0.2);
+  border-radius: 12px; padding: 6px; min-width: 180px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 40px rgba(245,197,24,0.05);
+  opacity: 0; visibility: hidden; transform: translateY(-8px) scale(0.96);
+  transition: all 0.3s cubic-bezier(0.23,1,0.32,1); backdrop-filter: blur(20px);
+}
+.currency-switcher.open .currency-dropdown { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.currency-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 8px; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600; color: #aaa;
+  transition: all 0.2s; border: none; background: none;
+  width: 100%; font-family: 'Sora', sans-serif; text-align: left;
+}
+.currency-option:hover { background: rgba(245,197,24,0.08); color: var(--white); }
+.currency-option.active { background: rgba(245,197,24,0.12); color: var(--gold); }
+.currency-option .opt-flag { font-size: 1.1rem; }
+.currency-option .opt-code { font-weight: 700; min-width: 34px; }
+.currency-option .opt-name { color: #666; font-size: 0.72rem; font-weight: 400; }
 </style>
 </head>
 <body>
@@ -1469,7 +1505,23 @@
 
 <nav>
   <a class="logo" href="index.html">Tony<span>Shop</span></a>
-  <a class="back-btn" href="index.html#planes"><span class="back-arrow">←</span> Volver a planes</a>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="currency-switcher" id="currency-switcher">
+      <button class="currency-btn" id="currency-btn">
+        <span class="flag">🇲🇽</span>
+        <span class="code">MXN</span>
+        <span class="arrow-down">▼</span>
+      </button>
+      <div class="currency-dropdown" id="currency-dropdown">
+        <button class="currency-option active" data-currency="MXN" data-flag="🇲🇽" data-rate="1"><span class="opt-flag">🇲🇽</span><span class="opt-code">MXN</span><span class="opt-name">Peso Mexicano</span></button>
+        <button class="currency-option" data-currency="USD" data-flag="🇺🇸" data-rate="0.058"><span class="opt-flag">🇺🇸</span><span class="opt-code">USD</span><span class="opt-name">Dólar</span></button>
+        <button class="currency-option" data-currency="ARS" data-flag="🇦🇷" data-rate="68.5"><span class="opt-flag">🇦🇷</span><span class="opt-code">ARS</span><span class="opt-name">Peso Argentino</span></button>
+        <button class="currency-option" data-currency="COP" data-flag="🇨🇴" data-rate="242"><span class="opt-flag">🇨🇴</span><span class="opt-code">COP</span><span class="opt-name">Peso Colombiano</span></button>
+        <button class="currency-option" data-currency="CLP" data-flag="🇨🇱" data-rate="56.8"><span class="opt-flag">🇨🇱</span><span class="opt-code">CLP</span><span class="opt-name">Peso Chileno</span></button>
+      </div>
+    </div>
+    <a class="back-btn" href="index.html#planes"><span class="back-arrow">←</span> Volver a planes</a>
+  </div>
 </nav>
 
 <section class="detail-hero">
@@ -2124,6 +2176,70 @@
       card.style.setProperty('--my', y + '%');
     });
   });
+
+/* CURRENCY SWITCHER */
+(function() {
+  var switcher = document.getElementById('currency-switcher');
+  var btn = document.getElementById('currency-btn');
+  var options = document.querySelectorAll('.currency-option');
+  var BASE_PRICE = 150;
+  var currentCurrency = 'MXN';
+
+  function formatPrice(amount, currency) {
+    if (currency === 'USD') return '$' + amount.toFixed(2);
+    return '$' + Math.round(amount).toLocaleString('es');
+  }
+
+  function switchCurrency(currency, rate, flag) {
+    currentCurrency = currency;
+    var converted = BASE_PRICE * rate;
+    var formatted = formatPrice(converted, currency);
+
+    // Price counter
+    var counter = document.getElementById('price-counter');
+    if (counter) counter.textContent = (currency === 'USD') ? converted.toFixed(2) : Math.round(converted).toLocaleString('es');
+
+    // Price currency labels
+    document.querySelectorAll('.price-currency').forEach(function(el) { el.textContent = currency; });
+
+    // Buy buttons
+    document.querySelectorAll('.buy-btn .btn-text').forEach(function(el) {
+      el.textContent = el.textContent.replace(/\$[\d,.]+\s*\w+/, formatted + ' ' + currency);
+    });
+
+    // Modal subtitle
+    var sub = document.querySelector('.pay-modal-sub');
+    if (sub) {
+      var span = sub.querySelector('span');
+      if (span) span.textContent = formatted + ' ' + currency;
+    }
+
+    // Update switcher button
+    btn.querySelector('.flag').textContent = flag;
+    btn.querySelector('.code').textContent = currency;
+    options.forEach(function(o) { o.classList.remove('active'); });
+    document.querySelector('.currency-option[data-currency="' + currency + '"]').classList.add('active');
+    switcher.classList.remove('open');
+    try { localStorage.setItem('tonyshop-currency', currency); } catch(e) {}
+  }
+
+  btn.addEventListener('click', function(e) { e.stopPropagation(); switcher.classList.toggle('open'); });
+  options.forEach(function(opt) {
+    opt.addEventListener('click', function(e) {
+      e.stopPropagation();
+      switchCurrency(opt.dataset.currency, parseFloat(opt.dataset.rate), opt.dataset.flag);
+    });
+  });
+  document.addEventListener('click', function() { switcher.classList.remove('open'); });
+
+  try {
+    var saved = localStorage.getItem('tonyshop-currency');
+    if (saved && saved !== 'MXN') {
+      var opt = document.querySelector('.currency-option[data-currency="' + saved + '"]');
+      if (opt) switchCurrency(saved, parseFloat(opt.dataset.rate), opt.dataset.flag);
+    }
+  } catch(e) {}
+})();
 </script>
 
 <!-- ── PAYMENT MODAL ── -->
