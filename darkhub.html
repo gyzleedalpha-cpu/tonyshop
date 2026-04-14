@@ -684,6 +684,27 @@
   .currency-option .opt-flag { font-size: 1.1rem; }
   .currency-option .opt-code { font-weight: 700; min-width: 34px; }
   .currency-option .opt-name { color: #666; font-size: 0.72rem; font-weight: 400; }
+
+  /* ── OFFER BADGE ── */
+  .offer-badge { display: none; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; text-align: center; margin-bottom: 10px; animation: offerPulse 2s ease-in-out infinite; }
+  .offer-badge.visible { display: block; }
+  @keyframes offerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .original-price { text-decoration: line-through; color: var(--gray); font-size: 1rem; display: none; }
+  .original-price.visible { display: inline; }
+  .offer-countdown { font-size: 0.75rem; color: #ef4444; margin-top: 4px; display: none; }
+  .offer-countdown.visible { display: block; }
+  .coupon-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .coupon-row { display: flex; gap: 8px; }
+  .coupon-input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: var(--white); font-family: inherit; font-size: 0.8rem; text-transform: uppercase; outline: none; transition: border 0.3s; }
+  .coupon-input:focus { border-color: var(--purple); }
+  .coupon-input::placeholder { color: var(--gray); text-transform: none; }
+  .coupon-apply-btn { padding: 8px 14px; border-radius: 8px; border: none; background: rgba(167,139,250,0.15); color: var(--purple); font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap; }
+  .coupon-apply-btn:hover { background: rgba(167,139,250,0.25); }
+  .coupon-msg { font-size: 0.75rem; margin-top: 6px; display: none; }
+  .coupon-msg.success { display: block; color: #22c55e; }
+  .coupon-msg.error { display: block; color: #ef4444; }
+  .discount-summary { display: none; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 8px 12px; margin-top: 8px; font-size: 0.8rem; color: #22c55e; }
+  .discount-summary.visible { display: block; }
 </style>
 </head>
 <body>
@@ -750,7 +771,10 @@
     </div>
     <div class="price-box">
       <div class="price-duration">DarkHub &middot; Permanente</div>
+      <div class="offer-badge" id="offerBadge"></div>
+      <div class="original-price" id="originalPrice"></div>
       <div class="price-amount">$<span id="priceCounter">0</span> <span class="price-currency">MXN</span></div>
+      <div class="offer-countdown" id="offerCountdown"></div>
       <div class="price-period">Pago unico &middot; Acceso de por vida</div>
       <div class="price-divider"></div>
       <button class="buy-btn magnetic-btn" onclick="openPayModal()">
@@ -939,6 +963,7 @@
     <button class="pay-modal-close" onclick="closePayModal()">&#10005;</button>
     <div class="pay-modal-title">&iquest;Como quieres pagar?</div>
     <div class="pay-modal-sub">Total: <span>$200 MXN</span> &middot; Pago unico</div>
+    <div class="discount-summary" id="discountSummary"></div>
     <div class="pay-modal-badge">&#128274; Transaccion segura</div>
 
     <!-- Stripe -->
@@ -1004,6 +1029,14 @@
       <button class="crypto-copy-btn" id="copy-binance" onclick="copyText('431782492', 'copy-binance')">
         &#128203; Copiar ID
       </button>
+    </div>
+
+    <div class="coupon-section">
+      <div class="coupon-row">
+        <input type="text" class="coupon-input" id="couponInput" placeholder="¿Tienes un cupón?">
+        <button class="coupon-apply-btn" onclick="applyCoupon()">Aplicar</button>
+      </div>
+      <div class="coupon-msg" id="couponMsg"></div>
     </div>
 
     <p class="pay-secure">&#128274; Tras pagar, envia tu comprobante a Tony por Telegram</p>
@@ -1300,6 +1333,74 @@
       setTimeout(function() { ripple.remove(); }, 600);
     });
   });
+
+  /* ── OFFERS & COUPONS SYSTEM ── */
+  (function() {
+    var PLAN_ID = 'darkhub';
+    var BASE_PRICE = 200;
+    var activeOffer = null;
+    var appliedCoupon = null;
+    function loadOffersData() { var stored = localStorage.getItem('ts_offers_data'); if (stored) { try { return JSON.parse(stored); } catch(e) {} } return null; }
+    function checkOffers() {
+      var data = loadOffersData(); if (!data || !data.active_offers) return;
+      var now = Date.now();
+      for (var i = 0; i < data.active_offers.length; i++) {
+        var offer = data.active_offers[i]; if (!offer.enabled) continue;
+        var start = new Date(offer.start_time).getTime(); var end = start + offer.duration_hours * 3600000;
+        if (now < start || now > end) continue;
+        if (offer.applicable_plans && offer.applicable_plans.length > 0 && offer.applicable_plans.indexOf(PLAN_ID) < 0) continue;
+        activeOffer = offer; break;
+      }
+      if (activeOffer) { var badge = document.getElementById('offerBadge'); if (badge) { badge.textContent = activeOffer.label; badge.classList.add('visible'); } updateOfferCountdown(); setInterval(updateOfferCountdown, 1000); updatePrice(); }
+    }
+    function updateOfferCountdown() {
+      if (!activeOffer) return;
+      var end = new Date(activeOffer.start_time).getTime() + activeOffer.duration_hours * 3600000;
+      var remaining = end - Date.now();
+      if (remaining <= 0) { activeOffer = null; document.getElementById('offerBadge').classList.remove('visible'); document.getElementById('offerCountdown').classList.remove('visible'); document.getElementById('originalPrice').classList.remove('visible'); updatePrice(); return; }
+      var h = Math.floor(remaining / 3600000); var m = Math.floor((remaining % 3600000) / 60000); var s = Math.floor((remaining % 60000) / 1000);
+      var cd = document.getElementById('offerCountdown'); if (cd) { cd.textContent = 'Termina en ' + h + 'h ' + m + 'm ' + s + 's'; cd.classList.add('visible'); }
+    }
+    function getDiscountedPrice() {
+      var price = BASE_PRICE;
+      if (activeOffer) { price = activeOffer.discount_type === 'percentage' ? price * (1 - activeOffer.discount_value / 100) : price - activeOffer.discount_value; }
+      if (appliedCoupon) { price = appliedCoupon.discount_type === 'percentage' ? price * (1 - appliedCoupon.discount_value / 100) : price - appliedCoupon.discount_value; }
+      return Math.max(Math.round(price), 0);
+    }
+    function updatePrice() {
+      var finalPrice = getDiscountedPrice(); var hasDiscount = finalPrice !== BASE_PRICE;
+      var counter = document.getElementById('priceCounter') || document.getElementById('price-counter');
+      if (counter) counter.textContent = finalPrice;
+      var orig = document.getElementById('originalPrice');
+      if (orig) { if (hasDiscount) { orig.textContent = '$' + BASE_PRICE + ' MXN'; orig.classList.add('visible'); } else { orig.classList.remove('visible'); } }
+      var sub = document.querySelector('.pay-modal-sub span'); if (sub) sub.textContent = '$' + finalPrice + ' MXN';
+      var summary = document.getElementById('discountSummary');
+      if (summary) {
+        if (hasDiscount) {
+          var parts = [];
+          if (activeOffer) parts.push('Oferta: -' + (activeOffer.discount_type === 'percentage' ? activeOffer.discount_value + '%' : '$' + activeOffer.discount_value));
+          if (appliedCoupon) parts.push('Cupón ' + appliedCoupon.code + ': -' + (appliedCoupon.discount_type === 'percentage' ? appliedCoupon.discount_value + '%' : '$' + appliedCoupon.discount_value));
+          summary.innerHTML = parts.join('<br>') + '<br><strong>Total: $' + finalPrice + ' MXN</strong>'; summary.classList.add('visible');
+        } else { summary.classList.remove('visible'); }
+      }
+    }
+    window.applyCoupon = function() {
+      var input = document.getElementById('couponInput'); var msg = document.getElementById('couponMsg');
+      var code = input.value.trim().toUpperCase();
+      if (!code) { msg.className = 'coupon-msg error'; msg.textContent = 'Ingresa un código'; return; }
+      var data = loadOffersData(); if (!data || !data.coupons) { msg.className = 'coupon-msg error'; msg.textContent = 'Cupón inválido'; return; }
+      var coupon = null; for (var i = 0; i < data.coupons.length; i++) { if (data.coupons[i].code === code) { coupon = data.coupons[i]; break; } }
+      if (!coupon || !coupon.enabled) { msg.className = 'coupon-msg error'; msg.textContent = 'Cupón inválido'; return; }
+      if (coupon.expires && new Date(coupon.expires) < new Date()) { msg.className = 'coupon-msg error'; msg.textContent = 'Cupón expirado'; return; }
+      if (coupon.max_uses && (coupon.current_uses || 0) >= coupon.max_uses) { msg.className = 'coupon-msg error'; msg.textContent = 'Cupón agotado'; return; }
+      if (coupon.applicable_plans && coupon.applicable_plans.indexOf(PLAN_ID) < 0) { msg.className = 'coupon-msg error'; msg.textContent = 'Cupón no válido para este plan'; return; }
+      appliedCoupon = coupon;
+      var discountText = coupon.discount_type === 'percentage' ? coupon.discount_value + '% de descuento' : '$' + coupon.discount_value + ' MXN de descuento';
+      msg.className = 'coupon-msg success'; msg.textContent = '✓ Cupón aplicado: ' + discountText;
+      updatePrice();
+    };
+    checkOffers();
+  })();
 
   /* CURRENCY SWITCHER */
   (function() {

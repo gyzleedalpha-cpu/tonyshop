@@ -1398,6 +1398,36 @@
   @media (max-width: 500px) {
     .temporality-grid { grid-template-columns: 1fr; }
   }
+
+  /* ── OFFER BADGES ON CARDS ── */
+  .card-offer-badge {
+    display: none;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+    animation: offerPulse 2s ease-in-out infinite;
+  }
+  .card-offer-badge.visible { display: block; }
+  @keyframes offerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .card-original-price {
+    text-decoration: line-through;
+    color: var(--gray);
+    font-size: 0.85rem;
+    display: none;
+  }
+  .card-original-price.visible { display: block; }
+  .card-offer-countdown {
+    font-size: 0.65rem;
+    color: #ef4444;
+    margin-top: 2px;
+    display: none;
+  }
+  .card-offer-countdown.visible { display: block; }
 </style>
 </head>
 <body>
@@ -1584,28 +1614,40 @@
         </div>
       </div>
       <div class="temporality-grid">
-        <div class="temp-card reveal">
+        <div class="temp-card reveal" data-plan="mxvip-2semanas">
+          <div class="card-offer-badge"></div>
           <div class="temp-label">2 Semanas</div>
+          <div class="card-original-price"></div>
           <div class="temp-price">$150 <span class="temp-currency">MXN</span></div>
+          <div class="card-offer-countdown"></div>
           <div class="temp-tag">Pruébalo sin compromiso</div>
           <a class="plan-btn plan-btn-outline" href="mxvip-2semanas.html">Obtener acceso</a>
         </div>
-        <div class="temp-card reveal">
+        <div class="temp-card reveal" data-plan="mxvip-1mes">
+          <div class="card-offer-badge"></div>
           <div class="temp-label">1 Mes</div>
+          <div class="card-original-price"></div>
           <div class="temp-price">$250 <span class="temp-currency">MXN</span></div>
+          <div class="card-offer-countdown"></div>
           <div class="temp-tag">El más elegido</div>
           <a class="plan-btn plan-btn-outline" href="mxvip-1mes.html">Obtener acceso</a>
         </div>
-        <div class="temp-card reveal">
+        <div class="temp-card reveal" data-plan="mxvip-4meses">
+          <div class="card-offer-badge"></div>
           <div class="temp-label">4 Meses</div>
+          <div class="card-original-price"></div>
           <div class="temp-price">$400 <span class="temp-currency">MXN</span></div>
+          <div class="card-offer-countdown"></div>
           <div class="temp-tag">Mejor precio por mes</div>
           <a class="plan-btn plan-btn-outline" href="mxvip-4meses.html">Obtener acceso</a>
         </div>
-        <div class="temp-card temp-featured reveal">
+        <div class="temp-card temp-featured reveal" data-plan="mxvip-permanente">
+          <div class="card-offer-badge"></div>
           <div class="popular-badge">👑 Mejor valor</div>
           <div class="temp-label">Permanente</div>
+          <div class="card-original-price"></div>
           <div class="temp-price">$1,000 <span class="temp-currency">MXN</span></div>
+          <div class="card-offer-countdown"></div>
           <div class="temp-tag">Paga una vez, accede siempre</div>
           <a class="plan-btn plan-btn-solid" href="mxvip-permanente.html">Obtener acceso</a>
         </div>
@@ -1621,10 +1663,13 @@
           <div class="plan-group-desc">Un canal oscuro y exclusivo. Contenido diferente, acceso único. Solo para los que saben.</div>
         </div>
       </div>
-      <div class="darkhub-card reveal">
+      <div class="darkhub-card reveal" data-plan="darkhub">
         <div class="darkhub-left">
+          <div class="card-offer-badge"></div>
           <div class="dh-tag">Acceso Permanente</div>
+          <div class="card-original-price"></div>
           <div class="dh-price">$200 <span class="temp-currency">MXN</span></div>
+          <div class="card-offer-countdown"></div>
           <div class="dh-desc">Pago único · Acceso de por vida · Sin renovaciones</div>
         </div>
         <div class="darkhub-right">
@@ -2394,6 +2439,79 @@
       badgeBox.style.transition = 'transform 0.6s cubic-bezier(0.23,1,0.32,1)';
     });
   }
+
+  /* =============================================
+     15b. OFFERS SYSTEM — INDEX BADGES
+  ============================================= */
+  (function() {
+    var PLAN_PRICES = {
+      'mxvip-2semanas': 150, 'mxvip-1mes': 250,
+      'mxvip-4meses': 400, 'mxvip-permanente': 1000, 'darkhub': 200
+    };
+
+    function loadOffersData() {
+      var stored = localStorage.getItem('ts_offers_data');
+      if (stored) { try { return JSON.parse(stored); } catch(e) {} }
+      return null;
+    }
+
+    function checkOffers() {
+      var data = loadOffersData();
+      if (!data || !data.active_offers) return;
+      var now = Date.now();
+
+      data.active_offers.forEach(function(offer) {
+        if (!offer.enabled) return;
+        var start = new Date(offer.start_time).getTime();
+        var end = start + offer.duration_hours * 3600000;
+        if (now < start || now > end) return;
+
+        var plans = offer.applicable_plans && offer.applicable_plans.length > 0
+          ? offer.applicable_plans
+          : Object.keys(PLAN_PRICES);
+
+        plans.forEach(function(planId) {
+          var card = document.querySelector('[data-plan="' + planId + '"]');
+          if (!card) return;
+          var badge = card.querySelector('.card-offer-badge');
+          if (badge) { badge.textContent = offer.label; badge.classList.add('visible'); }
+
+          var basePrice = PLAN_PRICES[planId];
+          var discounted = offer.discount_type === 'percentage'
+            ? Math.round(basePrice * (1 - offer.discount_value / 100))
+            : Math.round(basePrice - offer.discount_value);
+
+          var orig = card.querySelector('.card-original-price');
+          if (orig) { orig.textContent = '$' + basePrice.toLocaleString('es') + ' MXN'; orig.classList.add('visible'); }
+
+          var priceEl = card.querySelector('.temp-price') || card.querySelector('.dh-price');
+          if (priceEl) {
+            var currSpan = priceEl.querySelector('.temp-currency');
+            var curr = currSpan ? currSpan.textContent : 'MXN';
+            priceEl.childNodes[0].textContent = '$' + discounted.toLocaleString('es') + ' ';
+          }
+
+          var cd = card.querySelector('.card-offer-countdown');
+          if (cd) {
+            cd.classList.add('visible');
+            updateCountdown(cd, end);
+            setInterval(function() { updateCountdown(cd, end); }, 1000);
+          }
+        });
+      });
+    }
+
+    function updateCountdown(el, endTime) {
+      var remaining = endTime - Date.now();
+      if (remaining <= 0) { el.textContent = 'Oferta terminada'; return; }
+      var h = Math.floor(remaining / 3600000);
+      var m = Math.floor((remaining % 3600000) / 60000);
+      var s = Math.floor((remaining % 60000) / 1000);
+      el.textContent = 'Termina en ' + h + 'h ' + m + 'm ' + s + 's';
+    }
+
+    checkOffers();
+  })();
 
   /* =============================================
      15. CURRENCY SWITCHER — GLOBAL
