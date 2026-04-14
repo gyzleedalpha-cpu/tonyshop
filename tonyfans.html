@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TonyFans — Permanente | TonyShop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  /* ── 1. BLUE CSS VARIABLES ───────────────────── */
+  :root {
+    --blue: #3b82f6; --blue-dark: #2563eb; --blue-light: #60a5fa;
+    --blue-glow: rgba(59,130,246,0.15); --blue-deep: #1d4ed8;
+    --black: #050505; --dark: #020b18; --dark2: #071120;
+    --white: #F9F9F9; --gray: #888; --gold: #F5C518;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  /* ── PAGE LOAD ANIMATION ────────────────────── */
+  body {
+    font-family: 'Sora', sans-serif; background: var(--black); color: var(--white);
+    overflow-x: hidden; cursor: none; opacity: 0; animation: pageLoad 1.2s ease 0.1s forwards;
+  }
+  @keyframes pageLoad {
+    0% { opacity: 0; filter: blur(8px) brightness(0.5); }
+    50% { filter: blur(2px) brightness(0.8); }
+    100% { opacity: 1; filter: blur(0) brightness(1); }
+  }
+
+  /* ── 2. NOISE OVERLAY ──────────────────────── */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.03; mix-blend-mode: overlay;
+  }
+
+  /* ── 3. ANIMATED GRID ──────────────────────── */
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 20s linear infinite;
+  }
+  @keyframes gridShift { to { background-position: 60px 60px; } }
+
+  /* ── FLOATING PARTICLES CANVAS ─────────────── */
+  #particles-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  }
+
+  /* ── AMBIENT GLOW ──────────────────────────── */
+  .ambient-glow {
+    position: fixed; width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0; filter: blur(60px);
+    animation: ambientMove 15s ease-in-out infinite alternate;
+  }
+  .ambient-glow-2 {
+    animation-delay: -7s; animation-duration: 18s;
+    background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+  }
+  @keyframes ambientMove {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(15vw, 10vh); }
+    50% { transform: translate(-10vw, 25vh); }
+    75% { transform: translate(20vw, -10vh); }
+    100% { transform: translate(-5vw, 15vh); }
+  }
+
+  /* ── SCROLL PROGRESS BAR ───────────────────── */
+  .scroll-progress {
+    position: fixed; top: 0; left: 0; height: 3px; z-index: 1001;
+    background: linear-gradient(90deg, var(--blue-dark), var(--blue), var(--blue-light));
+    width: 0%; transition: width 0.1s linear;
+    box-shadow: 0 0 12px rgba(59,130,246,0.6);
+  }
+
+  /* ── GLASSMORPHISM NAV ─────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 6vw;
+    background: rgba(5,5,5,0.6); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-bottom: 1px solid rgba(59,130,246,0.08);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), background 0.3s;
+  }
+  nav.nav-hidden { transform: translateY(-100%); }
+  nav.nav-scrolled { background: rgba(5,5,5,0.85); border-bottom-color: rgba(59,130,246,0.15); }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 3px; color: var(--gold); text-decoration: none; }
+  .logo span { color: var(--white); }
+
+  /* ── BACK BUTTON ───────────────────────────── */
+  .back-btn {
+    display: flex; align-items: center; gap: 8px;
+    color: #888; font-size: 0.82rem; font-weight: 600; text-decoration: none;
+    letter-spacing: 1px; text-transform: uppercase;
+    transition: color 0.3s, transform 0.3s, gap 0.3s;
+  }
+  .back-btn:hover { color: var(--blue); transform: translateX(-4px); gap: 12px; }
+
+  /* ── HERO DETAIL ───────────────────────────── */
+  .detail-hero {
+    min-height: 60vh; display: flex; align-items: center;
+    padding: 140px 6vw 80px; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, #020b18 0%, #030e1a 40%, var(--black) 100%);
+  }
+  .detail-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 30% 50%, rgba(37,99,235,0.14) 0%, transparent 70%);
+  }
+
+  /* ── HERO BLOBS ────────────────────────────── */
+  .hero-blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none;
+    animation: blobFloat 8s ease-in-out infinite alternate;
+  }
+  .hero-blob-1 { width: 450px; height: 450px; top: -120px; left: -120px; background: rgba(37,99,235,0.14); }
+  .hero-blob-2 { width: 350px; height: 350px; bottom: -100px; right: 8%; background: rgba(59,130,246,0.09); animation-delay: -3s; animation-duration: 10s; }
+  .hero-blob-3 { width: 220px; height: 220px; top: 25%; right: 22%; background: rgba(29,78,216,0.07); animation-delay: -5s; animation-duration: 12s; }
+  @keyframes blobFloat {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, -20px) scale(1.12); }
+  }
+
+  .hero-inner {
+    position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; width: 100%;
+    display: grid; grid-template-columns: 1fr auto auto; gap: 60px; align-items: center;
+  }
+
+  /* ── EXCLUSIVE BADGE ───────────────────────── */
+  .plan-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);
+    color: var(--blue); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 7px 16px; border-radius: 100px; margin-bottom: 20px;
+    animation: fadeDown 0.6s ease both, badgePulse 3s ease-in-out infinite;
+    position: relative; overflow: hidden;
+  }
+  .plan-badge::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.15), transparent);
+    animation: badgeSweep 3s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.3); }
+    50% { box-shadow: 0 0 20px 4px rgba(59,130,246,0.15); }
+  }
+  @keyframes badgeSweep {
+    0% { transform: translateX(-100%); }
+    50%, 100% { transform: translateX(100%); }
+  }
+
+  .exclusive-tag {
+    display: inline-block; background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+    color: #fff; font-size: 0.6rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 4px; margin-left: 8px; vertical-align: middle;
+    animation: tagGlow 2s ease-in-out infinite alternate;
+  }
+  @keyframes tagGlow {
+    0% { box-shadow: 0 0 8px rgba(59,130,246,0.4); }
+    100% { box-shadow: 0 0 20px rgba(59,130,246,0.6); }
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 7vw, 6rem); line-height: 0.95; letter-spacing: 2px;
+    margin-bottom: 20px; animation: fadeDown 0.7s ease 0.1s both;
+  }
+
+  /* ── H1 BLUE SHIMMER ───────────────────────── */
+  h1 .blue-shine {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #2563eb, #3b82f6);
+    background-size: 300% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmerBlue 4s ease-in-out infinite;
+  }
+  @keyframes shimmerBlue {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .hero-desc {
+    font-size: 1.05rem; color: #bbb; line-height: 1.8; max-width: 520px;
+    animation: fadeDown 0.8s ease 0.2s both;
+  }
+
+  /* ── PRICE BOX 3D TILT + GLOW ──────────────── */
+  .price-box {
+    background: linear-gradient(135deg, #071120 0%, #0c1a30 50%, #0a0a1a 100%);
+    border: 1px solid rgba(59,130,246,0.4); border-radius: 20px; padding: 36px 32px;
+    text-align: center; min-width: 240px;
+    box-shadow: 0 0 50px rgba(37,99,235,0.15);
+    animation: fadeDown 0.8s ease 0.3s both, priceGlow 3s ease-in-out infinite;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    transform-style: preserve-3d; perspective: 600px;
+    position: relative; overflow: hidden;
+  }
+  .price-box::before {
+    content: ''; position: absolute; inset: -1px; border-radius: 20px; padding: 1px;
+    background: linear-gradient(135deg, var(--blue-dark), transparent, var(--blue));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: borderRotate 4s linear infinite;
+    opacity: 0.5;
+  }
+  @keyframes borderRotate {
+    0% { background: linear-gradient(0deg, var(--blue-dark), transparent, var(--blue)); }
+    25% { background: linear-gradient(90deg, var(--blue-dark), transparent, var(--blue)); }
+    50% { background: linear-gradient(180deg, var(--blue-dark), transparent, var(--blue)); }
+    75% { background: linear-gradient(270deg, var(--blue-dark), transparent, var(--blue)); }
+    100% { background: linear-gradient(360deg, var(--blue-dark), transparent, var(--blue)); }
+  }
+  .price-box:hover { transform: rotateY(-3deg) rotateX(2deg) translateY(-4px); box-shadow: 0 0 80px rgba(37,99,235,0.3); }
+  @keyframes priceGlow {
+    0%, 100% { box-shadow: 0 0 50px rgba(37,99,235,0.15); }
+    50% { box-shadow: 0 0 70px rgba(37,99,235,0.25), 0 0 100px rgba(59,130,246,0.08); }
+  }
+
+  .price-duration { font-size: 0.72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
+  .price-amount { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; color: var(--white); line-height: 1; }
+  .price-currency { font-size: 1.4rem; color: var(--gray); }
+  .price-period { font-size: 0.8rem; color: var(--gray); margin-bottom: 24px; }
+  .price-divider { width: 40px; height: 1px; background: linear-gradient(90deg, transparent, rgba(59,130,246,0.4), transparent); margin: 16px auto; }
+
+  /* ── BUY BUTTON MAGNETIC + AURORA ──────────── */
+  .buy-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+    color: #fff; font-weight: 800; font-size: 1rem; padding: 16px 24px;
+    border-radius: 10px; text-transform: uppercase; letter-spacing: 1px;
+    border: none; cursor: none;
+    box-shadow: 0 0 30px rgba(59,130,246,0.3);
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative; overflow: hidden;
+  }
+  .buy-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%); transition: transform 0.6s ease;
+  }
+  .buy-btn:hover::before { transform: translateX(100%); }
+  .buy-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 40px rgba(59,130,246,0.4), 0 0 60px rgba(59,130,246,0.2); }
+  .buy-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .buy-btn .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  .buy-btn.loading .btn-text { display: none; }
+  .buy-btn.loading .spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .buy-btn .ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transform: scale(0); animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+  }
+  @keyframes rippleEffect { to { transform: scale(4); opacity: 0; } }
+
+  .secure-note { font-size: 0.72rem; color: #555; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+
+  /* ── SECTION DIVIDERS ──────────────────────── */
+  .section-divider {
+    width: 100%; max-width: 1100px; margin: 0 auto; height: 1px; position: relative;
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.3), transparent);
+  }
+  .section-divider::after {
+    content: ''; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+    width: 60px; height: 3px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--blue-dark), var(--blue));
+    box-shadow: 0 0 12px rgba(59,130,246,0.4);
+  }
+
+  .content-section { padding: 80px 6vw; max-width: 1100px; margin: 0 auto; }
+  .includes-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 32px; }
+  .includes-title span { color: var(--blue); }
+  .includes-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 60px; }
+
+  /* ── INCLUDE ITEMS ─────────────────────────── */
+  .include-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: rgba(7,17,32,0.8); border: 1px solid rgba(59,130,246,0.1);
+    border-left: 3px solid var(--blue);
+    border-radius: 12px; padding: 20px;
+    transition: border-color 0.3s, transform 0.3s, background 0.3s, box-shadow 0.3s;
+    backdrop-filter: blur(10px);
+  }
+  .include-item:hover {
+    border-color: rgba(59,130,246,0.35); transform: translateX(8px);
+    background: rgba(12,26,48,0.9); box-shadow: 0 0 30px rgba(37,99,235,0.08);
+  }
+  .include-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .include-item h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+  .include-item p { font-size: 0.82rem; color: #888; line-height: 1.5; }
+
+  /* ── HOW IT WORKS ──────────────────────────── */
+  .steps-section { margin-bottom: 60px; }
+  .steps-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 32px; }
+  .steps-title span { color: var(--blue); }
+  .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .step-item {
+    text-align: center; padding: 32px 20px; border-radius: 16px;
+    background: rgba(7,17,32,0.8); border: 1px solid rgba(59,130,246,0.1);
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  }
+  .step-item::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .step-item:hover { border-color: rgba(59,130,246,0.3); transform: translateY(-6px); box-shadow: 0 12px 40px rgba(37,99,235,0.12); }
+  .step-item:hover::before { opacity: 1; }
+  .step-number {
+    font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1;
+    color: rgba(59,130,246,0.15); margin-bottom: 12px; letter-spacing: 2px;
+  }
+  .step-icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+  .step-item h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; color: var(--white); }
+  .step-item p { font-size: 0.78rem; color: #777; line-height: 1.6; }
+
+  /* ── EXPECT SECTION ────────────────────────── */
+  .expect-section {
+    background: linear-gradient(135deg, #050d18 0%, #080f1e 100%);
+    border-radius: 20px; padding: 48px; margin-bottom: 60px;
+    border: 1px solid rgba(59,130,246,0.1);
+    position: relative; overflow: hidden;
+  }
+  .expect-section::before {
+    content: ''; position: absolute; top: -50%; right: -20%;
+    width: 350px; height: 350px; border-radius: 50%;
+    background: rgba(37,99,235,0.07); filter: blur(60px); pointer-events: none;
+  }
+  .expect-section::after {
+    content: ''; position: absolute; bottom: -30%; left: -10%;
+    width: 250px; height: 250px; border-radius: 50%;
+    background: rgba(59,130,246,0.05); filter: blur(50px); pointer-events: none;
+  }
+  .expect-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; margin-bottom: 24px; position: relative; }
+  .expect-title span { color: var(--blue); }
+  .expect-text { font-size: 0.95rem; color: #bbb; line-height: 1.9; position: relative; }
+  .expect-text strong { color: var(--white); font-weight: 700; }
+
+  /* ── TRUST BADGES ──────────────────────────── */
+  .trust-section { margin: 48px 0; }
+  .trust-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 24px; }
+  .trust-title span { color: var(--blue); }
+  .trust-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .trust-badge {
+    text-align: center; padding: 24px 16px; border-radius: 16px;
+    background: rgba(7,17,32,0.6); border: 1px solid rgba(59,130,246,0.08);
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  }
+  .trust-badge:hover {
+    border-color: rgba(59,130,246,0.25); transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(37,99,235,0.1);
+  }
+  .trust-badge-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+  .trust-badge-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; color: var(--white); }
+  .trust-badge-desc { font-size: 0.72rem; color: #666; line-height: 1.5; }
+
+  /* ── FAQ ACCORDION ─────────────────────────── */
+  .faq-section { margin: 48px 0 60px; }
+  .faq-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; margin-bottom: 24px; }
+  .faq-title span { color: var(--blue); }
+  .faq-item {
+    border: 1px solid rgba(59,130,246,0.1); border-radius: 12px;
+    margin-bottom: 10px; overflow: hidden; background: rgba(7,17,32,0.5);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .faq-item:hover { border-color: rgba(59,130,246,0.2); }
+  .faq-item.active { border-color: rgba(59,130,246,0.3); box-shadow: 0 0 20px rgba(37,99,235,0.06); }
+  .faq-question {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px; cursor: pointer; font-size: 0.92rem; font-weight: 600;
+    color: var(--white); transition: color 0.2s; user-select: none;
+  }
+  .faq-question:hover { color: var(--blue-light); }
+  .faq-arrow {
+    font-size: 1.2rem; color: var(--blue); transition: transform 0.3s ease;
+    flex-shrink: 0; margin-left: 16px;
+  }
+  .faq-item.active .faq-arrow { transform: rotate(180deg); }
+  .faq-answer {
+    max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.3s;
+    padding: 0 22px; font-size: 0.85rem; color: #999; line-height: 1.7;
+  }
+  .faq-item.active .faq-answer {
+    max-height: 200px; padding: 0 22px 18px;
+  }
+
+  /* ── GALLERY ───────────────────────────────── */
+  .gallery-section { margin: 48px 0; }
+  .gallery-title { font-family: "Bebas Neue", sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; color: var(--white); }
+  .gallery-title span { color: var(--blue); }
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .gallery-item {
+    aspect-ratio: 9/16; border-radius: 12px;
+    border: 2px dashed rgba(59,130,246,0.2);
+    background: rgba(59,130,246,0.03);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; color: rgba(59,130,246,0.4);
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    text-align: center; padding: 16px;
+    overflow: hidden; position: relative;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  .gallery-item:hover { border-color: rgba(59,130,246,0.4); transform: scale(1.02); box-shadow: 0 0 30px rgba(37,99,235,0.1); }
+  .gallery-item .placeholder-icon { font-size: 2rem; opacity: 0.4; }
+  .gallery-item .placeholder-text { opacity: 0.5; line-height: 1.5; }
+
+  /* ── CTA BOTTOM ────────────────────────────── */
+  .cta-bottom {
+    background: linear-gradient(135deg, #071120 0%, #0c1a30 50%, #0a0a1a 100%);
+    border: 1px solid rgba(59,130,246,0.2); border-radius: 20px;
+    padding: 48px; text-align: center;
+    box-shadow: 0 0 60px rgba(37,99,235,0.08);
+    position: relative; overflow: hidden;
+  }
+  .cta-bottom::before, .cta-bottom::after {
+    content: ''; position: absolute; border-radius: 50%;
+    border: 1px solid rgba(59,130,246,0.08); pointer-events: none;
+  }
+  .cta-bottom::before {
+    width: 400px; height: 400px; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); animation: ctaPulse 4s ease-in-out infinite;
+  }
+  .cta-bottom::after {
+    width: 600px; height: 600px; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); animation: ctaPulse 4s ease-in-out 1s infinite;
+  }
+  @keyframes ctaPulse {
+    0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.9); }
+    50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+  }
+  .cta-bottom h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; letter-spacing: 2px; margin-bottom: 12px; position: relative; z-index: 1; }
+  .cta-bottom h2 span { color: var(--blue); }
+  .cta-bottom p { color: #aaa; font-size: 0.95rem; margin-bottom: 28px; position: relative; z-index: 1; }
+  .cta-bottom .buy-btn { max-width: 320px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .stripe-error { background: rgba(255,50,50,0.1); border: 1px solid rgba(255,50,50,0.3); color: #ff6b6b; border-radius: 8px; padding: 12px 16px; font-size: 0.82rem; margin-top: 10px; display: none; }
+
+  /* ── FOOTER ────────────────────────────────── */
+  footer {
+    background: #020b18; border-top: 1px solid rgba(59,130,246,0.08);
+    padding: 28px 6vw; display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px; margin-top: 80px;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 3px; color: var(--gold); }
+  .footer-logo span { color: var(--white); }
+  footer p { font-size: 0.75rem; color: #444; }
+
+  /* ── HERO PREVIEW IMAGE ────────────────────── */
+  .hero-preview { flex-shrink: 0; width: 280px; }
+  .img-placeholder {
+    width: 100%; aspect-ratio: 9/16; border-radius: 16px;
+    border: 2px dashed rgba(59,130,246,0.3); background: rgba(59,130,246,0.04);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; color: rgba(59,130,246,0.5);
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    text-align: center; padding: 20px; transition: border-color 0.3s;
+    overflow: hidden; position: relative;
+  }
+  .img-placeholder img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; border-radius: 14px; display: block;
+  }
+  .img-placeholder .placeholder-icon { font-size: 2.5rem; opacity: 0.5; }
+  .img-placeholder .placeholder-text { opacity: 0.6; line-height: 1.6; }
+
+  /* ── SCROLL REVEAL ─────────────────────────── */
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ── PAYMENT MODAL ─────────────────────────── */
+  .pay-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.88); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeOverlay 0.2s ease;
+  }
+  .pay-overlay.open { display: flex; }
+  @keyframes fadeOverlay { from { opacity:0; } to { opacity:1; } }
+
+  .pay-modal {
+    background: linear-gradient(180deg, #071120 0%, #050505 100%);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 24px; padding: 36px 30px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 80px rgba(37,99,235,0.1);
+    animation: slideModal 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative; overflow: hidden;
+  }
+  .pay-modal::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  }
+  @keyframes slideModal {
+    from { transform: translateY(30px) scale(0.95); opacity:0; }
+    to   { transform: none; opacity:1; }
+  }
+  .pay-modal-close {
+    position: absolute; top: 16px; right: 18px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; color: #555; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; cursor: pointer; line-height:1; transition: all 0.2s;
+  }
+  .pay-modal-close:hover { color: var(--white); background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
+
+  .pay-modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem; letter-spacing: 2px;
+    margin-bottom: 4px; color: var(--white);
+  }
+  .pay-modal-sub { font-size: 0.8rem; color: #666; margin-bottom: 24px; }
+  .pay-modal-sub span { color: var(--blue); font-weight: 700; }
+  .pay-modal-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.15);
+    padding: 3px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 700;
+    color: var(--blue); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;
+  }
+
+  .pay-method {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    text-decoration: none; color: var(--white);
+    margin-bottom: 10px;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .pay-method:hover {
+    border-color: rgba(59,130,246,0.35);
+    background: rgba(59,130,246,0.06);
+    transform: translateX(4px);
+    box-shadow: 0 4px 20px rgba(37,99,235,0.08);
+  }
+  .pay-method:last-child { margin-bottom: 0; }
+  .pay-method-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .pay-method-info { flex: 1; }
+  .pay-method-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; }
+  .pay-method-desc { font-size: 0.75rem; color: #666; }
+  .pay-method-arrow { color: #444; font-size: 1rem; transition: color 0.2s, transform 0.2s; }
+  .pay-method:hover .pay-method-arrow { color: var(--blue); transform: translateX(2px); }
+
+  /* SPEI sub-modal */
+  .spei-details {
+    display: none; background: rgba(2,11,24,0.8);
+    border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 12px; padding: 20px; margin-top: 10px;
+  }
+  .spei-details.open { display: block; animation: fadeDown 0.3s ease; }
+  .spei-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.85rem;
+  }
+  .spei-row:last-child { border-bottom: none; }
+  .spei-label { color: #666; }
+  .spei-value { color: var(--white); font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .copy-btn {
+    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
+    color: var(--blue); font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .copy-btn:hover { background: rgba(59,130,246,0.2); }
+  .copy-btn.copied { background: rgba(0,200,100,0.15); border-color: rgba(0,200,100,0.3); color: #4ade80; }
+
+  /* CRYPTO sub-modal */
+  .crypto-details {
+    display: none; background: rgba(2,11,24,0.8);
+    border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 12px; padding: 20px; margin-top: 10px;
+    text-align: center;
+  }
+  .crypto-details.open { display: block; animation: fadeDown 0.3s ease; }
+  .crypto-id {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; color: var(--blue); letter-spacing: 3px;
+    margin: 12px 0 4px;
+  }
+  .crypto-sub { font-size: 0.75rem; color: #555; margin-bottom: 16px; }
+  .crypto-copy-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25);
+    color: var(--blue); font-size: 0.8rem; font-weight: 700;
+    padding: 8px 18px; border-radius: 8px; cursor: pointer;
+    transition: background 0.2s; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .crypto-copy-btn:hover { background: rgba(59,130,246,0.2); }
+  .crypto-copy-btn.copied { background: rgba(0,200,100,0.15); border-color: rgba(0,200,100,0.3); color: #4ade80; }
+
+  .pay-secure { font-size: 0.72rem; color: #444; text-align: center; margin-top: 18px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+  /* ── CUSTOM CURSOR ─────────────────────────── */
+  .cursor-dot {
+    position: fixed; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--blue); z-index: 99999; pointer-events: none;
+    transition: transform 0.1s ease;
+    box-shadow: 0 0 10px rgba(59,130,246,0.7);
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid rgba(59,130,246,0.4);
+    z-index: 99998; pointer-events: none;
+    transition: width 0.3s, height 0.3s, border-color 0.3s;
+  }
+  .cursor-trail {
+    position: fixed; width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(59,130,246,0.3); z-index: 99997; pointer-events: none;
+  }
+  @media (hover: none) {
+    .cursor-dot, .cursor-ring, .cursor-trail { display: none; }
+    body { cursor: auto; }
+    .buy-btn, .pay-method, .pay-modal-close, .copy-btn, .crypto-copy-btn, .faq-question, .gallery-item { cursor: pointer; }
+  }
+
+  /* ── RESPONSIVE ────────────────────────────── */
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr !important; }
+    .steps-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 800px) {
+    .hero-inner { grid-template-columns: 1fr !important; }
+    .hero-preview { width: 100%; }
+    .img-placeholder { aspect-ratio: 16/9; }
+    .price-box { width: 100%; }
+    .includes-grid { grid-template-columns: 1fr; }
+    .trust-grid { grid-template-columns: repeat(2, 1fr); }
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    .expect-section, .cta-bottom { padding: 28px 20px; }
+    .steps-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 500px) {
+    .trust-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .trust-badge { padding: 18px 12px; }
+    .steps-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---- CURRENCY SWITCHER ---- */
+  .currency-switcher { position: relative; z-index: 1001; }
+  .currency-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2);
+    color: var(--blue); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 7px 14px; border-radius: 8px; cursor: pointer;
+    transition: all 0.3s; font-family: 'Sora', sans-serif;
+  }
+  .currency-btn:hover { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(59,130,246,0.1); }
+  .currency-btn .flag { font-size: 1rem; }
+  .currency-btn .arrow-down { font-size: 0.6rem; transition: transform 0.3s; }
+  .currency-switcher.open .currency-btn .arrow-down { transform: rotate(180deg); }
+  .currency-dropdown {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    background: #0a0f1a; border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 12px; padding: 6px; min-width: 180px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 40px rgba(59,130,246,0.05);
+    opacity: 0; visibility: hidden; transform: translateY(-8px) scale(0.96);
+    transition: all 0.3s cubic-bezier(0.23,1,0.32,1); backdrop-filter: blur(20px);
+  }
+  .currency-switcher.open .currency-dropdown { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+  .currency-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 8px; cursor: pointer;
+    font-size: 0.82rem; font-weight: 600; color: #aaa;
+    transition: all 0.2s; border: none; background: none;
+    width: 100%; font-family: 'Sora', sans-serif; text-align: left;
+  }
+  .currency-option:hover { background: rgba(59,130,246,0.08); color: var(--white); }
+  .currency-option.active { background: rgba(59,130,246,0.12); color: var(--blue); }
+  .currency-option .opt-flag { font-size: 1.1rem; }
+  .currency-option .opt-code { font-weight: 700; min-width: 34px; }
+  .currency-option .opt-name { color: #666; font-size: 0.72rem; font-weight: 400; }
+
+  /* ── OFFER BADGE ── */
+  .offer-badge { display: none; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; text-align: center; margin-bottom: 10px; animation: offerPulse 2s ease-in-out infinite; }
+  .offer-badge.visible { display: block; }
+  @keyframes offerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .original-price { text-decoration: line-through; color: var(--gray); font-size: 1rem; display: none; }
+  .original-price.visible { display: inline; }
+  .offer-countdown { font-size: 0.75rem; color: #ef4444; margin-top: 4px; display: none; }
+  .offer-countdown.visible { display: block; }
+  .coupon-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .coupon-row { display: flex; gap: 8px; }
+  .coupon-input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: var(--white); font-family: inherit; font-size: 0.8rem; text-transform: uppercase; outline: none; transition: border 0.3s; }
+  .coupon-input:focus { border-color: var(--blue); }
+  .coupon-input::placeholder { color: var(--gray); text-transform: none; }
+  .coupon-apply-btn { padding: 8px 14px; border-radius: 8px; border: none; background: rgba(59,130,246,0.15); color: var(--blue); font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap; }
+  .coupon-apply-btn:hover { background: rgba(59,130,246,0.25); }
+  .coupon-msg { font-size: 0.75rem; margin-top: 6px; display: none; }
+  .coupon-msg.success { display: block; color: #22c55e; }
+  .coupon-msg.error { display: block; color: #ef4444; }
+  .discount-summary { display: none; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 8px 12px; margin-top: 8px; font-size: 0.8rem; color: #22c55e; }
+  .discount-summary.visible { display: block; }
+</style>
+</head>
+<body>
+
+<!-- AMBIENT GLOW -->
+<div class="ambient-glow" style="top: -200px; left: -200px;"></div>
+<div class="ambient-glow ambient-glow-2" style="bottom: -200px; right: -200px;"></div>
+
+<!-- FLOATING PARTICLES -->
+<canvas id="particles-canvas"></canvas>
+
+<!-- SCROLL PROGRESS -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a class="logo" href="index.html">Tony<span>Shop</span></a>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="currency-switcher" id="currency-switcher">
+      <button class="currency-btn" id="currency-btn">
+        <span class="flag">&#127474;&#127485;</span>
+        <span class="code">MXN</span>
+        <span class="arrow-down">&#9660;</span>
+      </button>
+      <div class="currency-dropdown" id="currency-dropdown">
+        <button class="currency-option active" data-currency="MXN" data-flag="&#127474;&#127485;" data-rate="1"><span class="opt-flag">&#127474;&#127485;</span><span class="opt-code">MXN</span><span class="opt-name">Peso Mexicano</span></button>
+        <button class="currency-option" data-currency="USD" data-flag="&#127482;&#127480;" data-rate="0.058"><span class="opt-flag">&#127482;&#127480;</span><span class="opt-code">USD</span><span class="opt-name">D&oacute;lar</span></button>
+        <button class="currency-option" data-currency="ARS" data-flag="&#127462;&#127479;" data-rate="68.5"><span class="opt-flag">&#127462;&#127479;</span><span class="opt-code">ARS</span><span class="opt-name">Peso Argentino</span></button>
+        <button class="currency-option" data-currency="COP" data-flag="&#127464;&#127476;" data-rate="242"><span class="opt-flag">&#127464;&#127476;</span><span class="opt-code">COP</span><span class="opt-name">Peso Colombiano</span></button>
+        <button class="currency-option" data-currency="CLP" data-flag="&#127464;&#127473;" data-rate="56.8"><span class="opt-flag">&#127464;&#127473;</span><span class="opt-code">CLP</span><span class="opt-name">Peso Chileno</span></button>
+      </div>
+    </div>
+    <a class="back-btn" href="index.html">&#8592; VOLVER A PLANES</a>
+  </div>
+</nav>
+
+<section class="detail-hero">
+  <!-- HERO BLOBS -->
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-blob hero-blob-3"></div>
+
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="plan-badge">&#11088; EXCLUSIVO <span class="exclusive-tag">&#128286; TONYFANS</span></div>
+      <h1>ACCESO <br> <span class="blue-shine">PERMANENTE</span> <br> AL MEJOR CONTENIDO</h1>
+      <p class="hero-desc">Elige 4 OnlyFans de tu preferencia y los subimos a un grupo exclusivo de Telegram. Disfruta tambi&eacute;n del contenido elegido por toda la comunidad.</p>
+    </div>
+    <!-- Hero image placeholder (400x700px) -->
+    <div class="hero-preview">
+      <div class="img-placeholder">
+        <div class="placeholder-icon">&#128286;</div>
+        <div class="placeholder-text">TonyFans<br>Preview</div>
+      </div>
+    </div>
+    <div class="price-box">
+      <div class="price-duration">TonyFans &middot; Permanente</div>
+      <div class="offer-badge" id="offerBadge"></div>
+      <div class="original-price" id="originalPrice"></div>
+      <div class="price-amount">$<span id="priceCounter">0</span> <span class="price-currency">MXN</span></div>
+      <div class="offer-countdown" id="offerCountdown"></div>
+      <div class="price-period">Pago &uacute;nico &middot; Acceso de por vida</div>
+      <div class="price-divider"></div>
+      <button class="buy-btn magnetic-btn" onclick="openPayModal()">
+        <span class="btn-text">&#128179; Pagar ahora</span>
+        <div class="spinner"></div>
+      </button>
+      <div class="stripe-error" id="stripe-error-main"></div>
+      <p class="secure-note">&#128274; Pago seguro con Stripe</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION DIVIDER -->
+<div class="section-divider"></div>
+
+<div class="content-section">
+
+  <!-- INCLUDES -->
+  <div class="reveal">
+    <h2 class="includes-title">&iquest;Qu&eacute; <span>incluye</span>?</h2>
+    <div class="includes-grid">
+      <div class="include-item">
+        <div class="include-icon">&#127919;</div>
+        <div><h3>Elige tus 4 OnlyFans</h3><p>Selecciona 4 cuentas de OnlyFans de tu preferencia y las conseguimos para ti.</p></div>
+      </div>
+      <div class="include-item">
+        <div class="include-icon">&#128101;</div>
+        <div><h3>Grupo Telegram Exclusivo</h3><p>Accede a un grupo privado donde se comparte el contenido de todos los miembros.</p></div>
+      </div>
+      <div class="include-item">
+        <div class="include-icon">&#9854;&#65039;</div>
+        <div><h3>Acceso permanente garantizado</h3><p>Paga una vez y accede para siempre. Sin renovaciones ni pagos adicionales.</p></div>
+      </div>
+      <div class="include-item">
+        <div class="include-icon">&#128260;</div>
+        <div><h3>Contenido en constante actualizaci&oacute;n</h3><p>El grupo se actualiza continuamente con el contenido elegido por nuevos miembros.</p></div>
+      </div>
+      <div class="include-item">
+        <div class="include-icon">&#9889;</div>
+        <div><h3>Acceso inmediato</h3><p>En minutos tras tu pago recibes el enlace al grupo de Telegram.</p></div>
+      </div>
+      <div class="include-item">
+        <div class="include-icon">&#128081;</div>
+        <div><h3>Soporte directo con Tony</h3><p>Cualquier duda o problema, Tony te atiende personalmente.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION DIVIDER -->
+  <div class="section-divider" style="margin-bottom:60px;"></div>
+
+  <!-- HOW IT WORKS -->
+  <div class="reveal">
+    <div class="steps-section">
+      <h2 class="steps-title">&iquest;C&oacute;mo <span>funciona</span>?</h2>
+      <div class="steps-grid">
+        <div class="step-item">
+          <div class="step-number">01</div>
+          <span class="step-icon">&#128179;</span>
+          <h3>Realiza tu pago</h3>
+          <p>Paga $150 MXN una sola vez por cualquier m&eacute;todo disponible.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-number">02</div>
+          <span class="step-icon">&#128203;</span>
+          <h3>Elige tus 4 OnlyFans</h3>
+          <p>Env&iacute;a a Tony por Telegram los 4 perfiles de OnlyFans que quieres.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-number">03</div>
+          <span class="step-icon">&#11014;&#65039;</span>
+          <h3>Subimos tu contenido</h3>
+          <p>En menos de 24 horas subimos tu contenido al grupo exclusivo.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-number">04</div>
+          <span class="step-icon">&#128275;</span>
+          <h3>Acceso al grupo</h3>
+          <p>Recibes el enlace al grupo de Telegram con todo el contenido disponible.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION DIVIDER -->
+  <div class="section-divider" style="margin-bottom:60px;"></div>
+
+  <!-- EXPECT SECTION -->
+  <div class="expect-section reveal">
+    <h2 class="expect-title">&iquest;Qu&eacute; vas a <span>encontrar</span>?</h2>
+    <p class="expect-text">
+      <strong>TonyFans</strong> es la forma m&aacute;s inteligente de acceder a contenido de OnlyFans sin pagar m&uacute;ltiples suscripciones. Con solo <strong>$150 MXN de pago &uacute;nico</strong> obtienes acceso a un grupo de Telegram donde se comparte el contenido de los 4 OnlyFans que t&uacute; eliges, m&aacute;s el contenido elegido por toda la comunidad de TonyFans.<br><br>
+      Mientras m&aacute;s miembros se unan, m&aacute;s contenido disponible habr&aacute; para todos. Tony se encarga de conseguir y subir el contenido, t&uacute; solo disfruta.
+    </p>
+  </div>
+
+  <!-- SECTION DIVIDER -->
+  <div class="section-divider" style="margin-bottom:60px;"></div>
+
+  <!-- TRUST BADGES -->
+  <div class="trust-section reveal">
+    <div class="trust-grid">
+      <div class="trust-badge">
+        <span class="trust-badge-icon">&#128737;&#65039;</span>
+        <div class="trust-badge-title">Pago Seguro</div>
+        <div class="trust-badge-desc">Stripe, PayPal, SPEI y Crypto. M&uacute;ltiples m&eacute;todos verificados.</div>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-badge-icon">&#9854;&#65039;</span>
+        <div class="trust-badge-title">Acceso de por Vida</div>
+        <div class="trust-badge-desc">Un solo pago, acceso permanente. Sin cargos ocultos.</div>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-badge-icon">&#9889;</span>
+        <div class="trust-badge-title">Entrega en 24h</div>
+        <div class="trust-badge-desc">Tu contenido elegido subido al grupo en menos de 24 horas.</div>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-badge-icon">&#128101;</span>
+        <div class="trust-badge-title">Comunidad Creciente</div>
+        <div class="trust-badge-desc">M&aacute;s miembros = m&aacute;s contenido para todos. La comunidad crece cada d&iacute;a.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION DIVIDER -->
+  <div class="section-divider" style="margin-bottom:60px;"></div>
+
+  <!-- GALLERY (placeholders only) -->
+  <div class="gallery-section reveal">
+    <h2 class="gallery-title">Vista <span>previa</span></h2>
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <div class="placeholder-icon">&#128247;</div>
+        <div class="placeholder-text">Preview #1</div>
+      </div>
+      <div class="gallery-item">
+        <div class="placeholder-icon">&#128247;</div>
+        <div class="placeholder-text">Preview #2</div>
+      </div>
+      <div class="gallery-item">
+        <div class="placeholder-icon">&#128247;</div>
+        <div class="placeholder-text">Preview #3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION DIVIDER -->
+  <div class="section-divider" style="margin-bottom:60px;"></div>
+
+  <!-- FAQ ACCORDION -->
+  <div class="faq-section reveal">
+    <h2 class="faq-title">Preguntas <span>frecuentes</span></h2>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>&iquest;Puedo cambiar mis 4 OnlyFans despu&eacute;s?</span>
+        <span class="faq-arrow">&#9662;</span>
+      </div>
+      <div class="faq-answer">Una vez elegidos y subidos al grupo, los 4 OnlyFans son permanentes. Sin embargo, si hay alg&uacute;n problema con alguna cuenta, Tony te ayudar&aacute; a encontrar una alternativa.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>&iquest;Cu&aacute;nto tiempo tardan en subir mi contenido?</span>
+        <span class="faq-arrow">&#9662;</span>
+      </div>
+      <div class="faq-answer">Normalmente menos de 24 horas h&aacute;biles despu&eacute;s de confirmar tu pago y enviarnos los 4 perfiles elegidos.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>&iquest;Qu&eacute; tipo de contenido incluye?</span>
+        <span class="faq-arrow">&#9662;</span>
+      </div>
+      <div class="faq-answer">Contenido de las cuentas de OnlyFans que t&uacute; mismo eliges. Tony se encarga de obtener y subir dicho contenido al grupo exclusivo.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>&iquest;El grupo es privado?</span>
+        <span class="faq-arrow">&#9662;</span>
+      </div>
+      <div class="faq-answer">S&iacute;, el grupo de Telegram es completamente privado. Solo los miembros verificados tienen acceso al enlace.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>&iquest;Puedo tener tanto TonyFans como MX VIP?</span>
+        <span class="faq-arrow">&#9662;</span>
+      </div>
+      <div class="faq-answer">S&iacute;, son productos independientes. Muchos miembros tienen ambos porque ofrecen contenido completamente diferente.</div>
+    </div>
+  </div>
+
+  <!-- CTA BOTTOM -->
+  <div class="cta-bottom reveal">
+    <h2>&iquest;Listo para unirte a <span>TonyFans</span>?</h2>
+    <p>Pago &uacute;nico de por vida. Elige tus 4 OnlyFans y disfruta del mejor contenido.</p>
+    <button class="buy-btn magnetic-btn" onclick="openPayModal()">
+      <span class="btn-text">&#128179; Comprar &mdash; $150 MXN</span>
+      <div class="spinner"></div>
+    </button>
+    <div class="stripe-error" id="stripe-error-bottom"></div>
+    <p class="secure-note" style="justify-content:center; margin-top:14px;">&#128274; Stripe &middot; Pago 100% seguro &middot; Sin cargos ocultos</p>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-logo">Tony<span>Shop</span></div>
+  <p>&copy; 2024 TonyShop &mdash; El vendedor #1 en Telegram</p>
+  <p style="color:#555;">Vendedor #1 &middot; 100% Confiable</p>
+</footer>
+
+<!-- PAYMENT MODAL -->
+<div class="pay-overlay" id="pay-overlay" onclick="closePayModal(event)">
+  <div class="pay-modal">
+    <button class="pay-modal-close" onclick="closePayModal()">&#10005;</button>
+    <div class="pay-modal-title">&iquest;C&oacute;mo quieres pagar?</div>
+    <div class="pay-modal-sub">Total: <span>$150 MXN</span> &middot; Pago &uacute;nico</div>
+    <div class="discount-summary" id="discountSummary"></div>
+    <div class="pay-modal-badge">&#128274; Transacci&oacute;n segura</div>
+
+    <!-- Stripe -->
+    <a class="pay-method" href="https://buy.stripe.com/5kQaEWfDP3RQ09tdn02ZO0b" target="_blank">
+      <div class="pay-method-icon" style="background:rgba(37,99,235,0.15);">&#128179;</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">Tarjeta de d&eacute;bito / cr&eacute;dito</div>
+        <div class="pay-method-desc">Pago seguro con Stripe</div>
+      </div>
+      <div class="pay-method-arrow">&rarr;</div>
+    </a>
+
+    <!-- PayPal -->
+    <a class="pay-method" href="https://www.paypal.me/ErnesAltss" target="_blank">
+      <div class="pay-method-icon" style="background:rgba(0,112,243,0.15);">&#127279;&#65039;</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">PayPal</div>
+        <div class="pay-method-desc">paypal.me/ErnesAltss</div>
+      </div>
+      <div class="pay-method-arrow">&rarr;</div>
+    </a>
+
+    <!-- SPEI -->
+    <div class="pay-method" onclick="toggleSpei()">
+      <div class="pay-method-icon" style="background:rgba(0,180,100,0.15);">&#127974;</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">Transferencia SPEI</div>
+        <div class="pay-method-desc">BBVA &middot; Ver datos bancarios</div>
+      </div>
+      <div class="pay-method-arrow" id="spei-arrow">&darr;</div>
+    </div>
+    <div class="spei-details" id="spei-details">
+      <div class="spei-row">
+        <span class="spei-label">Banco</span>
+        <span class="spei-value">BBVA</span>
+      </div>
+      <div class="spei-row">
+        <span class="spei-label">Titular</span>
+        <span class="spei-value">Yanet M</span>
+      </div>
+      <div class="spei-row">
+        <span class="spei-label">CLABE</span>
+        <span class="spei-value">
+          012180015297098113
+          <button class="copy-btn" id="copy-clabe" onclick="copyText('012180015297098113', 'copy-clabe')">Copiar</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- Crypto -->
+    <div class="pay-method" onclick="toggleCrypto()">
+      <div class="pay-method-icon" style="background:rgba(59,130,246,0.12);">&#8383;</div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">Crypto &mdash; Binance Pay</div>
+        <div class="pay-method-desc">Binance ID &middot; Ver datos</div>
+      </div>
+      <div class="pay-method-arrow" id="crypto-arrow">&darr;</div>
+    </div>
+    <div class="crypto-details" id="crypto-details">
+      <div style="font-size:0.75rem;color:#555;margin-bottom:4px;">BINANCE PAY ID</div>
+      <div class="crypto-id">431 782 492</div>
+      <div class="crypto-sub">Env&iacute;a el pago exacto y manda comprobante a Tony</div>
+      <button class="crypto-copy-btn" id="copy-binance" onclick="copyText('431782492', 'copy-binance')">
+        &#128203; Copiar ID
+      </button>
+    </div>
+
+    <div class="coupon-section">
+      <div class="coupon-row">
+        <input type="text" class="coupon-input" id="couponInput" placeholder="&iquest;Tienes un cup&oacute;n?">
+        <button class="coupon-apply-btn" onclick="applyCoupon()">Aplicar</button>
+      </div>
+      <div class="coupon-msg" id="couponMsg"></div>
+    </div>
+
+    <p class="pay-secure">&#128274; Tras pagar, env&iacute;a tu comprobante a Tony por Telegram</p>
+  </div>
+</div>
+
+<script>
+  // ── FLOATING PARTICLES ────────────────────────
+  (function() {
+    var canvas = document.getElementById('particles-canvas');
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var PARTICLE_COUNT = 30;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    var blueShades = [
+      'rgba(59,130,246,0.3)', 'rgba(37,99,235,0.25)', 'rgba(96,165,250,0.2)',
+      'rgba(29,78,216,0.2)', 'rgba(59,130,246,0.15)', 'rgba(96,165,250,0.25)'
+    ];
+
+    for (var i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 3 + 1,
+        speedX: (Math.random() - 0.5) * 0.4,
+        speedY: (Math.random() - 0.5) * 0.3 - 0.1,
+        color: blueShades[Math.floor(Math.random() * blueShades.length)],
+        opacity: Math.random() * 0.5 + 0.2,
+        pulse: Math.random() * Math.PI * 2
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.pulse += 0.02;
+        var currentOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.pulse));
+
+        if (p.x < -10) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 10) p.x = -10;
+        if (p.y < -10) p.y = canvas.height + 10;
+        if (p.y > canvas.height + 10) p.y = -10;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = currentOpacity;
+        ctx.fill();
+
+        // Glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+        var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+        grad.addColorStop(0, p.color);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.globalAlpha = currentOpacity * 0.3;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
+
+  // ── ANIMATED PRICE COUNTER ────────────────────
+  (function() {
+    var target = 150;
+    var el = document.getElementById('priceCounter');
+    var started = false;
+
+    function countUp() {
+      if (started) return;
+      started = true;
+      var current = 0;
+      var duration = 1500;
+      var startTime = null;
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        current = Math.floor(eased * target);
+        el.textContent = current;
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          el.textContent = target;
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    var priceObs = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) {
+        countUp();
+        priceObs.disconnect();
+      }
+    }, { threshold: 0.5 });
+    var priceBox = document.querySelector('.price-box');
+    if (priceBox) priceObs.observe(priceBox);
+  })();
+
+  // ── FAQ ACCORDION ─────────────────────────────
+  function toggleFaq(el) {
+    var item = el.parentElement;
+    var wasActive = item.classList.contains('active');
+    document.querySelectorAll('.faq-item').forEach(function(f) { f.classList.remove('active'); });
+    if (!wasActive) item.classList.add('active');
+  }
+
+  // ── MAGNETIC BUTTON EFFECT ────────────────────
+  (function() {
+    document.querySelectorAll('.magnetic-btn').forEach(function(btn) {
+      btn.addEventListener('mousemove', function(e) {
+        var rect = btn.getBoundingClientRect();
+        var x = e.clientX - rect.left - rect.width / 2;
+        var y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = 'translate(' + (x * 0.15) + 'px, ' + (y * 0.15) + 'px) scale(1.02)';
+      });
+      btn.addEventListener('mouseleave', function() {
+        btn.style.transform = '';
+      });
+    });
+  })();
+
+  // ── PAYMENT MODAL JS ──────────────────────────
+  function openPayModal() {
+    document.getElementById('pay-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePayModal(e) {
+    if (e && e.target !== document.getElementById('pay-overlay')) return;
+    document.getElementById('pay-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('pay-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+
+  function toggleSpei() {
+    var d = document.getElementById('spei-details');
+    var a = document.getElementById('spei-arrow');
+    d.classList.toggle('open');
+    a.innerHTML = d.classList.contains('open') ? '&uarr;' : '&darr;';
+  }
+
+  function toggleCrypto() {
+    var d = document.getElementById('crypto-details');
+    var a = document.getElementById('crypto-arrow');
+    d.classList.toggle('open');
+    a.innerHTML = d.classList.contains('open') ? '&uarr;' : '&darr;';
+  }
+
+  function copyText(text, btnId) {
+    navigator.clipboard.writeText(text).then(function() {
+      var btn = document.getElementById(btnId);
+      var orig = btn.textContent;
+      btn.textContent = '\u2713 Copiado';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── SCROLL REVEAL ─────────────────────────────
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(function(r) { obs.observe(r); });
+
+  // ── SCROLL PROGRESS BAR ───────────────────────
+  window.addEventListener('scroll', function() {
+    var scrollTop = document.documentElement.scrollTop;
+    var scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    var progress = (scrollTop / scrollHeight) * 100;
+    document.getElementById('scrollProgress').style.width = progress + '%';
+  });
+
+  // ── NAV HIDE/SHOW ─────────────────────────────
+  (function() {
+    var lastScroll = 0;
+    var nav = document.querySelector('nav');
+    window.addEventListener('scroll', function() {
+      var current = window.pageYOffset;
+      if (current > lastScroll && current > 80) {
+        nav.classList.add('nav-hidden');
+      } else {
+        nav.classList.remove('nav-hidden');
+      }
+      if (current > 50) {
+        nav.classList.add('nav-scrolled');
+      } else {
+        nav.classList.remove('nav-scrolled');
+      }
+      lastScroll = current;
+    });
+  })();
+
+  // ── CUSTOM CURSOR ─────────────────────────────
+  (function() {
+    var dot = document.getElementById('cursorDot');
+    var ring = document.getElementById('cursorRing');
+    if (!dot || !ring) return;
+    if (window.matchMedia('(hover: none)').matches) return;
+
+    var mx = 0, my = 0, rx = 0, ry = 0;
+    var trails = [];
+    var TRAIL_COUNT = 5;
+    for (var i = 0; i < TRAIL_COUNT; i++) {
+      var t = document.createElement('div');
+      t.className = 'cursor-trail';
+      t.style.opacity = (1 - i / TRAIL_COUNT) * 0.3;
+      document.body.appendChild(t);
+      trails.push({ el: t, x: 0, y: 0 });
+    }
+    document.addEventListener('mousemove', function(e) {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx - 3 + 'px';
+      dot.style.top = my - 3 + 'px';
+    });
+    function animateRing() {
+      rx += (mx - rx) * 0.15;
+      ry += (my - ry) * 0.15;
+      ring.style.left = rx - 18 + 'px';
+      ring.style.top = ry - 18 + 'px';
+      var prevX = mx, prevY = my;
+      for (var i = 0; i < trails.length; i++) {
+        var tr = trails[i];
+        tr.x += (prevX - tr.x) * 0.25;
+        tr.y += (prevY - tr.y) * 0.25;
+        tr.el.style.left = tr.x - 2 + 'px';
+        tr.el.style.top = tr.y - 2 + 'px';
+        prevX = tr.x; prevY = tr.y;
+      }
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+    document.querySelectorAll('a, button, .gallery-item, .pay-method, .faq-question, .trust-badge, .step-item').forEach(function(el) {
+      el.addEventListener('mouseenter', function() {
+        ring.style.width = '50px'; ring.style.height = '50px';
+        ring.style.borderColor = 'rgba(59,130,246,0.6)';
+        dot.style.transform = 'scale(1.5)';
+      });
+      el.addEventListener('mouseleave', function() {
+        ring.style.width = '36px'; ring.style.height = '36px';
+        ring.style.borderColor = 'rgba(59,130,246,0.4)';
+        dot.style.transform = 'scale(1)';
+      });
+    });
+  })();
+
+  // ── BUY BUTTON RIPPLE ─────────────────────────
+  document.querySelectorAll('.buy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      var ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      var rect = btn.getBoundingClientRect();
+      ripple.style.left = e.clientX - rect.left + 'px';
+      ripple.style.top = e.clientY - rect.top + 'px';
+      ripple.style.width = ripple.style.height = '20px';
+      btn.appendChild(ripple);
+      setTimeout(function() { ripple.remove(); }, 600);
+    });
+  });
+
+  /* ── OFFERS & COUPONS SYSTEM ── */
+  (function() {
+    var PLAN_ID = 'tonyfans';
+    var BASE_PRICE = 150;
+    var activeOffer = null;
+    var appliedCoupon = null;
+    function loadOffersData() { var stored = localStorage.getItem('ts_offers_data'); if (stored) { try { return JSON.parse(stored); } catch(e) {} } return null; }
+    function checkOffers() {
+      var data = loadOffersData(); if (!data || !data.active_offers) return;
+      var now = Date.now();
+      for (var i = 0; i < data.active_offers.length; i++) {
+        var offer = data.active_offers[i]; if (!offer.enabled) continue;
+        var start = new Date(offer.start_time).getTime(); var end = start + offer.duration_hours * 3600000;
+        if (now < start || now > end) continue;
+        if (offer.applicable_plans && offer.applicable_plans.length > 0 && offer.applicable_plans.indexOf(PLAN_ID) < 0) continue;
+        activeOffer = offer; break;
+      }
+      if (activeOffer) { var badge = document.getElementById('offerBadge'); if (badge) { badge.textContent = activeOffer.label; badge.classList.add('visible'); } updateOfferCountdown(); setInterval(updateOfferCountdown, 1000); updatePrice(); }
+    }
+    function updateOfferCountdown() {
+      if (!activeOffer) return;
+      var end = new Date(activeOffer.start_time).getTime() + activeOffer.duration_hours * 3600000;
+      var remaining = end - Date.now();
+      if (remaining <= 0) { activeOffer = null; document.getElementById('offerBadge').classList.remove('visible'); document.getElementById('offerCountdown').classList.remove('visible'); document.getElementById('originalPrice').classList.remove('visible'); updatePrice(); return; }
+      var h = Math.floor(remaining / 3600000); var m = Math.floor((remaining % 3600000) / 60000); var s = Math.floor((remaining % 60000) / 1000);
+      var cd = document.getElementById('offerCountdown'); if (cd) { cd.textContent = 'Termina en ' + h + 'h ' + m + 'm ' + s + 's'; cd.classList.add('visible'); }
+    }
+    function getDiscountedPrice() {
+      var price = BASE_PRICE;
+      if (activeOffer) { price = activeOffer.discount_type === 'percentage' ? price * (1 - activeOffer.discount_value / 100) : price - activeOffer.discount_value; }
+      if (appliedCoupon) { price = appliedCoupon.discount_type === 'percentage' ? price * (1 - appliedCoupon.discount_value / 100) : price - appliedCoupon.discount_value; }
+      return Math.max(Math.round(price), 0);
+    }
+    function updatePrice() {
+      var finalPrice = getDiscountedPrice(); var hasDiscount = finalPrice !== BASE_PRICE;
+      var counter = document.getElementById('priceCounter') || document.getElementById('price-counter');
+      if (counter) counter.textContent = finalPrice;
+      var orig = document.getElementById('originalPrice');
+      if (orig) { if (hasDiscount) { orig.textContent = '$' + BASE_PRICE + ' MXN'; orig.classList.add('visible'); } else { orig.classList.remove('visible'); } }
+      var sub = document.querySelector('.pay-modal-sub span'); if (sub) sub.textContent = '$' + finalPrice + ' MXN';
+      var summary = document.getElementById('discountSummary');
+      if (summary) {
+        if (hasDiscount) {
+          var parts = [];
+          if (activeOffer) parts.push('Oferta: -' + (activeOffer.discount_type === 'percentage' ? activeOffer.discount_value + '%' : '$' + activeOffer.discount_value));
+          if (appliedCoupon) parts.push('Cup\u00f3n ' + appliedCoupon.code + ': -' + (appliedCoupon.discount_type === 'percentage' ? appliedCoupon.discount_value + '%' : '$' + appliedCoupon.discount_value));
+          summary.innerHTML = parts.join('<br>') + '<br><strong>Total: $' + finalPrice + ' MXN</strong>'; summary.classList.add('visible');
+        } else { summary.classList.remove('visible'); }
+      }
+    }
+    window.applyCoupon = function() {
+      var input = document.getElementById('couponInput'); var msg = document.getElementById('couponMsg');
+      var code = input.value.trim().toUpperCase();
+      if (!code) { msg.className = 'coupon-msg error'; msg.textContent = 'Ingresa un c\u00f3digo'; return; }
+      var data = loadOffersData(); if (!data || !data.coupons) { msg.className = 'coupon-msg error'; msg.textContent = 'Cup\u00f3n inv\u00e1lido'; return; }
+      var coupon = null; for (var i = 0; i < data.coupons.length; i++) { if (data.coupons[i].code === code) { coupon = data.coupons[i]; break; } }
+      if (!coupon || !coupon.enabled) { msg.className = 'coupon-msg error'; msg.textContent = 'Cup\u00f3n inv\u00e1lido'; return; }
+      if (coupon.expires && new Date(coupon.expires) < new Date()) { msg.className = 'coupon-msg error'; msg.textContent = 'Cup\u00f3n expirado'; return; }
+      if (coupon.max_uses && (coupon.current_uses || 0) >= coupon.max_uses) { msg.className = 'coupon-msg error'; msg.textContent = 'Cup\u00f3n agotado'; return; }
+      if (coupon.applicable_plans && coupon.applicable_plans.indexOf(PLAN_ID) < 0) { msg.className = 'coupon-msg error'; msg.textContent = 'Cup\u00f3n no v\u00e1lido para este plan'; return; }
+      appliedCoupon = coupon;
+      var discountText = coupon.discount_type === 'percentage' ? coupon.discount_value + '% de descuento' : '$' + coupon.discount_value + ' MXN de descuento';
+      msg.className = 'coupon-msg success'; msg.textContent = '\u2713 Cup\u00f3n aplicado: ' + discountText;
+      updatePrice();
+    };
+    checkOffers();
+  })();
+
+  /* CURRENCY SWITCHER */
+  (function() {
+    var switcher = document.getElementById('currency-switcher');
+    var btn = document.getElementById('currency-btn');
+    var options = document.querySelectorAll('.currency-option');
+    var BASE_PRICE = 150;
+
+    function formatPrice(amount, currency) {
+      if (currency === 'USD') return '$' + amount.toFixed(2);
+      return '$' + Math.round(amount).toLocaleString('es');
+    }
+
+    function switchCurrency(currency, rate, flag) {
+      var converted = BASE_PRICE * rate;
+      var formatted = formatPrice(converted, currency);
+
+      var counter = document.getElementById('priceCounter');
+      if (counter) counter.textContent = (currency === 'USD') ? converted.toFixed(2) : Math.round(converted).toLocaleString('es');
+
+      document.querySelectorAll('.price-currency').forEach(function(el) { el.textContent = currency; });
+
+      document.querySelectorAll('.buy-btn .btn-text').forEach(function(el) {
+        el.textContent = el.textContent.replace(/\$[\d,.]+\s*\w+/, formatted + ' ' + currency);
+      });
+
+      var sub = document.querySelector('.pay-modal-sub');
+      if (sub) { var span = sub.querySelector('span'); if (span) span.textContent = formatted + ' ' + currency; }
+
+      btn.querySelector('.flag').textContent = flag;
+      btn.querySelector('.code').textContent = currency;
+      options.forEach(function(o) { o.classList.remove('active'); });
+      document.querySelector('.currency-option[data-currency="' + currency + '"]').classList.add('active');
+      switcher.classList.remove('open');
+      try { localStorage.setItem('tonyshop-currency', currency); } catch(e) {}
+    }
+
+    btn.addEventListener('click', function(e) { e.stopPropagation(); switcher.classList.toggle('open'); });
+    options.forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        switchCurrency(opt.dataset.currency, parseFloat(opt.dataset.rate), opt.dataset.flag);
+      });
+    });
+    document.addEventListener('click', function() { switcher.classList.remove('open'); });
+
+    try {
+      var saved = localStorage.getItem('tonyshop-currency');
+      if (saved && saved !== 'MXN') {
+        var opt = document.querySelector('.currency-option[data-currency="' + saved + '"]');
+        if (opt) switchCurrency(saved, parseFloat(opt.dataset.rate), opt.dataset.flag);
+      }
+    } catch(e) {}
+  })();
+</script>
+
+</body>
+</html>
