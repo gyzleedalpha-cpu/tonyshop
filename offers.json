@@ -11,5 +11,17 @@
       "enabled": true
     }
   ],
-  "coupons": []
+  "coupons": [
+    {
+      "id": "coupon_welcome_001",
+      "code": "WELCOME20",
+      "discount_type": "percentage",
+      "discount_value": 20,
+      "max_uses": 100,
+      "current_uses": 0,
+      "expires": "2026-12-31",
+      "applicable_plans": null,
+      "enabled": true
+    }
+  ]
 }

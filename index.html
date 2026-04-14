@@ -2450,13 +2450,13 @@
     };
 
     function loadOffersData() {
-      var stored = localStorage.getItem('ts_offers_data');
-      if (stored) { try { return JSON.parse(stored); } catch(e) {} }
-      return null;
+      return fetch('offers.json')
+        .then(r => r.json())
+        .catch(() => null);
     }
 
-    function checkOffers() {
-      var data = loadOffersData();
+    async function checkOffers() {
+      var data = await loadOffersData();
       if (!data || !data.active_offers) return;
       var now = Date.now();
 
