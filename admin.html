@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TonyShop — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #F5C518; --gold-dark: #C9A000; --gold-light: #FFE066;
+    --gold-glow: rgba(245,197,24,0.4);
+    --black: #050505; --dark: #0a0a0a; --dark2: #111111; --dark3: #1A1A1A;
+    --white: #F9F9F9; --gray: #888;
+    --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Sora', sans-serif; font-weight: 300;
+    background: var(--black); color: var(--white);
+    overflow-x: hidden; min-height: 100vh;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  .login-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--black);
+    transition: opacity 0.5s, visibility 0.5s;
+  }
+  .login-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .login-box {
+    background: var(--dark2); border: 1px solid rgba(245,197,24,0.2);
+    border-radius: 16px; padding: 40px; width: 380px; text-align: center;
+    box-shadow: 0 0 80px rgba(245,197,24,0.05);
+  }
+  .login-box h1 { font-size: 1.6rem; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+  .login-box p { color: var(--gray); font-size: 0.85rem; margin-bottom: 24px; }
+  .login-input {
+    width: 100%; padding: 12px 16px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1); background: var(--dark3);
+    color: var(--white); font-family: inherit; font-size: 0.95rem;
+    outline: none; transition: border 0.3s;
+  }
+  .login-input:focus { border-color: var(--gold); }
+  .login-input::placeholder { color: var(--gray); }
+  .login-btn {
+    width: 100%; margin-top: 16px; padding: 12px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: var(--black); border: none; border-radius: 10px;
+    font-family: inherit; font-weight: 700; font-size: 0.95rem;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .login-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px var(--gold-glow); }
+  .login-error { color: var(--red); font-size: 0.8rem; margin-top: 12px; display: none; }
+
+  /* ── ADMIN LAYOUT ── */
+  .admin-wrap { display: none; }
+  .admin-wrap.active { display: block; }
+
+  .admin-nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 30px;
+    background: rgba(10,10,10,0.9); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(245,197,24,0.1);
+  }
+  .admin-nav-left { display: flex; align-items: center; gap: 12px; }
+  .admin-nav-logo { font-weight: 800; font-size: 1.1rem; color: var(--gold); }
+  .admin-nav-badge {
+    background: rgba(245,197,24,0.15); color: var(--gold);
+    padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;
+  }
+  .admin-nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-btn {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    font-family: inherit; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .nav-btn-outline {
+    background: transparent; color: var(--gray);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .nav-btn-outline:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+  .nav-btn-gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: var(--black);
+  }
+  .nav-btn-gold:hover { box-shadow: 0 0 20px var(--gold-glow); }
+  .nav-btn-red { background: rgba(239,68,68,0.15); color: var(--red); }
+  .nav-btn-red:hover { background: rgba(239,68,68,0.25); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 4px; padding: 20px 30px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .tab {
+    padding: 10px 20px; border-radius: 10px 10px 0 0;
+    background: transparent; color: var(--gray); border: none;
+    font-family: inherit; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.3s; position: relative;
+  }
+  .tab:hover { color: var(--white); }
+  .tab.active {
+    color: var(--gold); background: rgba(245,197,24,0.05);
+  }
+  .tab.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--gold); border-radius: 2px 2px 0 0;
+  }
+  .tab-count {
+    background: rgba(255,255,255,0.1); padding: 2px 8px;
+    border-radius: 10px; font-size: 0.7rem; margin-left: 6px;
+  }
+  .tab.active .tab-count { background: rgba(245,197,24,0.2); color: var(--gold); }
+
+  /* ── CONTENT ── */
+  .content { padding: 24px 30px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .section-title { font-size: 1.2rem; font-weight: 700; }
+  .add-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 18px; border-radius: 10px;
+    background: rgba(245,197,24,0.1); color: var(--gold);
+    border: 1px solid rgba(245,197,24,0.2);
+    font-family: inherit; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .add-btn:hover { background: rgba(245,197,24,0.2); box-shadow: 0 0 20px rgba(245,197,24,0.1); }
+
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--gray);
+    border: 2px dashed rgba(255,255,255,0.08); border-radius: 16px;
+  }
+  .empty-state-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 0.9rem; }
+
+  .offer-card, .coupon-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; padding: 20px; margin-bottom: 14px;
+    transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .offer-card:hover, .coupon-card:hover {
+    border-color: rgba(245,197,24,0.15);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  }
+  .offer-card.active-offer { border-left: 3px solid var(--green); }
+  .offer-card.expired-offer { border-left: 3px solid var(--red); opacity: 0.6; }
+  .offer-card.scheduled-offer { border-left: 3px solid var(--blue); }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 10px; }
+  .card-label { font-weight: 700; font-size: 1rem; }
+  .card-status {
+    padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .status-active { background: rgba(34,197,94,0.15); color: var(--green); }
+  .status-expired { background: rgba(239,68,68,0.15); color: var(--red); }
+  .status-scheduled { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .status-inactive { background: rgba(255,255,255,0.08); color: var(--gray); }
+
+  .card-actions { display: flex; gap: 6px; }
+  .card-btn {
+    padding: 6px 12px; border-radius: 8px; border: none;
+    font-family: inherit; font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .card-btn-edit { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .card-btn-edit:hover { background: rgba(59,130,246,0.25); }
+  .card-btn-toggle { background: rgba(34,197,94,0.15); color: var(--green); }
+  .card-btn-toggle:hover { background: rgba(34,197,94,0.25); }
+  .card-btn-delete { background: rgba(239,68,68,0.15); color: var(--red); }
+  .card-btn-delete:hover { background: rgba(239,68,68,0.25); }
+
+  .card-details {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-top: 12px;
+  }
+  .card-detail { font-size: 0.8rem; }
+  .card-detail-label { color: var(--gray); font-size: 0.7rem; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-detail-value { font-weight: 600; }
+
+  .plan-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .plan-tag {
+    background: rgba(245,197,24,0.1); color: var(--gold);
+    padding: 2px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 600;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: all 0.3s;
+  }
+  .modal-overlay.active { opacity: 1; visibility: visible; }
+  .modal {
+    background: var(--dark2); border: 1px solid rgba(245,197,24,0.15);
+    border-radius: 16px; padding: 30px; width: 500px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    transform: scale(0.95); transition: transform 0.3s;
+  }
+  .modal-overlay.active .modal { transform: scale(1); }
+  .modal h2 {
+    font-size: 1.2rem; font-weight: 700; margin-bottom: 20px;
+    color: var(--gold);
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 0.8rem; font-weight: 600;
+    margin-bottom: 6px; color: var(--gray);
+  }
+  .form-input, .form-select {
+    width: 100%; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1); background: var(--dark3);
+    color: var(--white); font-family: inherit; font-size: 0.9rem;
+    outline: none; transition: border 0.3s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--gold); }
+  .form-select option { background: var(--dark3); color: var(--white); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-hint { font-size: 0.7rem; color: var(--gray); margin-top: 4px; }
+
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .checkbox-label {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1); background: var(--dark3);
+    font-size: 0.8rem; cursor: pointer; transition: all 0.3s;
+    user-select: none;
+  }
+  .checkbox-label:hover { border-color: rgba(245,197,24,0.3); }
+  .checkbox-label input { display: none; }
+  .checkbox-label.checked {
+    background: rgba(245,197,24,0.1); border-color: var(--gold); color: var(--gold);
+  }
+
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .btn-cancel {
+    padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+    background: transparent; color: var(--gray); font-family: inherit;
+    font-weight: 600; font-size: 0.85rem; cursor: pointer;
+  }
+  .btn-cancel:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+  .btn-save {
+    padding: 10px 24px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: var(--black); font-family: inherit; font-weight: 700;
+    font-size: 0.85rem; cursor: pointer; transition: all 0.3s;
+  }
+  .btn-save:hover { box-shadow: 0 0 20px var(--gold-glow); }
+
+  /* ── SETTINGS TAB ── */
+  .settings-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; padding: 24px; margin-bottom: 16px;
+  }
+  .settings-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .settings-card p { color: var(--gray); font-size: 0.8rem; margin-bottom: 16px; }
+
+  /* ── TOGGLE SWITCH ── */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .toggle-label-text { font-size: 0.85rem; }
+  .toggle {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(255,255,255,0.1); border-radius: 12px;
+    cursor: pointer; transition: background 0.3s;
+  }
+  .toggle.on { background: var(--green); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; background: white; border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+
+  /* ── TOAST ── */
+  .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast-success { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .toast-error { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .toast-info { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+  @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes toastOut { to { transform: translateX(100%); opacity: 0; } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .admin-nav { padding: 12px 16px; }
+    .tabs { padding: 12px 16px 0; overflow-x: auto; }
+    .content { padding: 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    .modal { padding: 20px; }
+    .section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <h1>TonyShop Admin</h1>
+    <p>Ingresa tu contraseña de administrador</p>
+    <input type="password" class="login-input" id="loginPassword" placeholder="Contraseña" autofocus>
+    <button class="login-btn" onclick="attemptLogin()">Entrar</button>
+    <div class="login-error" id="loginError">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN PANEL ═══ -->
+<div class="admin-wrap" id="adminWrap">
+
+  <!-- NAV -->
+  <nav class="admin-nav">
+    <div class="admin-nav-left">
+      <span class="admin-nav-logo">TonyShop</span>
+      <span class="admin-nav-badge">ADMIN</span>
+    </div>
+    <div class="admin-nav-right">
+      <button class="nav-btn nav-btn-outline" onclick="window.open('index.html','_blank')">Ver Tienda</button>
+      <button class="nav-btn nav-btn-gold" id="deployBtn" onclick="deployChanges()">Guardar y Desplegar</button>
+      <button class="nav-btn nav-btn-red" onclick="logout()">Salir</button>
+    </div>
+  </nav>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('offers')">
+      Ofertas <span class="tab-count" id="offersCount">0</span>
+    </button>
+    <button class="tab" onclick="switchTab('coupons')">
+      Cupones <span class="tab-count" id="couponsCount">0</span>
+    </button>
+    <button class="tab" onclick="switchTab('settings')">
+      Configuración
+    </button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- OFFERS TAB -->
+    <div class="tab-panel active" id="panel-offers">
+      <div class="section-header">
+        <h2 class="section-title">Ofertas Activas</h2>
+        <button class="add-btn" onclick="openOfferModal()">+ Nueva Oferta</button>
+      </div>
+      <div id="offersList">
+        <div class="empty-state">
+          <div class="empty-state-icon">🏷️</div>
+          <p>No hay ofertas creadas.<br>Crea una nueva oferta para comenzar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- COUPONS TAB -->
+    <div class="tab-panel" id="panel-coupons">
+      <div class="section-header">
+        <h2 class="section-title">Cupones</h2>
+        <button class="add-btn" onclick="openCouponModal()">+ Nuevo Cupón</button>
+      </div>
+      <div id="couponsList">
+        <div class="empty-state">
+          <div class="empty-state-icon">🎟️</div>
+          <p>No hay cupones creados.<br>Crea un nuevo cupón para comenzar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="tab-panel" id="panel-settings">
+      <div class="section-header">
+        <h2 class="section-title">Configuración</h2>
+      </div>
+
+      <div class="settings-card">
+        <h3>Contraseña del Admin</h3>
+        <p>Cambia la contraseña para acceder a este panel.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nueva contraseña</label>
+            <input type="password" class="form-input" id="newPassword" placeholder="Nueva contraseña">
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button class="btn-save" onclick="changePassword()" style="width:100%">Cambiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>GitHub Deploy</h3>
+        <p>Conecta tu repositorio para desplegar ofertas automáticamente a GitHub Pages.</p>
+        <div class="form-group">
+          <label class="form-label">Repository (owner/repo)</label>
+          <input type="text" class="form-input" id="ghRepo" placeholder="usuario/tonyshop">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Personal Access Token</label>
+          <input type="password" class="form-input" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+          <div class="form-hint">Necesita permiso "Contents: Read and write". Ve a GitHub → Settings → Developer settings → Personal access tokens.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Branch</label>
+          <input type="text" class="form-input" id="ghBranch" value="main" placeholder="main">
+        </div>
+        <button class="btn-save" onclick="saveGitHubSettings()">Guardar Configuración GitHub</button>
+      </div>
+
+      <div class="settings-card">
+        <h3>Exportar / Importar</h3>
+        <p>Exporta o importa tus datos de ofertas y cupones como JSON.</p>
+        <div style="display:flex;gap:10px;">
+          <button class="nav-btn nav-btn-outline" onclick="exportData()">Exportar JSON</button>
+          <button class="nav-btn nav-btn-outline" onclick="document.getElementById('importFile').click()">Importar JSON</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OFFER MODAL ═══ -->
+<div class="modal-overlay" id="offerModal">
+  <div class="modal">
+    <h2 id="offerModalTitle">Nueva Oferta</h2>
+    <input type="hidden" id="offerEditId">
+    <div class="form-group">
+      <label class="form-label">Nombre / Etiqueta</label>
+      <input type="text" class="form-input" id="offerLabel" placeholder="🔥 20% OFF por 24 horas">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo de descuento</label>
+        <select class="form-select" id="offerType" onchange="toggleOfferFields()">
+          <option value="percentage">Porcentaje (%)</option>
+          <option value="fixed">Monto fijo (MXN)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor del descuento</label>
+        <input type="number" class="form-input" id="offerValue" placeholder="20" min="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha y hora inicio</label>
+        <input type="datetime-local" class="form-input" id="offerStart">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duración (horas)</label>
+        <input type="number" class="form-input" id="offerDuration" placeholder="24" min="1">
+        <div class="form-hint">Se calcula la fecha de fin automáticamente</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Planes aplicables</label>
+      <div class="checkbox-group" id="offerPlans">
+        <label class="checkbox-label" data-plan="mxvip-2semanas"><input type="checkbox" value="mxvip-2semanas">MX VIP 2 Semanas</label>
+        <label class="checkbox-label" data-plan="mxvip-1mes"><input type="checkbox" value="mxvip-1mes">MX VIP 1 Mes</label>
+        <label class="checkbox-label" data-plan="mxvip-4meses"><input type="checkbox" value="mxvip-4meses">MX VIP 4 Meses</label>
+        <label class="checkbox-label" data-plan="mxvip-permanente"><input type="checkbox" value="mxvip-permanente">MX VIP Permanente</label>
+        <label class="checkbox-label" data-plan="darkhub"><input type="checkbox" value="darkhub">DarkHub</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-select" id="offerEnabled">
+        <option value="true">Activa</option>
+        <option value="false">Desactivada</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('offerModal')">Cancelar</button>
+      <button class="btn-save" onclick="saveOffer()">Guardar Oferta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COUPON MODAL ═══ -->
+<div class="modal-overlay" id="couponModal">
+  <div class="modal">
+    <h2 id="couponModalTitle">Nuevo Cupón</h2>
+    <input type="hidden" id="couponEditId">
+    <div class="form-group">
+      <label class="form-label">Código del cupón</label>
+      <input type="text" class="form-input" id="couponCode" placeholder="WELCOME20" style="text-transform:uppercase">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo de descuento</label>
+        <select class="form-select" id="couponType">
+          <option value="percentage">Porcentaje (%)</option>
+          <option value="fixed">Monto fijo (MXN)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor del descuento</label>
+        <input type="number" class="form-input" id="couponValue" placeholder="20" min="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Usos máximos</label>
+        <input type="number" class="form-input" id="couponMaxUses" placeholder="100" min="1">
+        <div class="form-hint">Dejar vacío = ilimitado</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha de expiración</label>
+        <input type="date" class="form-input" id="couponExpires">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Planes aplicables (vacío = todos)</label>
+      <div class="checkbox-group" id="couponPlans">
+        <label class="checkbox-label" data-plan="mxvip-2semanas"><input type="checkbox" value="mxvip-2semanas">MX VIP 2 Semanas</label>
+        <label class="checkbox-label" data-plan="mxvip-1mes"><input type="checkbox" value="mxvip-1mes">MX VIP 1 Mes</label>
+        <label class="checkbox-label" data-plan="mxvip-4meses"><input type="checkbox" value="mxvip-4meses">MX VIP 4 Meses</label>
+        <label class="checkbox-label" data-plan="mxvip-permanente"><input type="checkbox" value="mxvip-permanente">MX VIP Permanente</label>
+        <label class="checkbox-label" data-plan="darkhub"><input type="checkbox" value="darkhub">DarkHub</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-select" id="couponEnabled">
+        <option value="true">Activo</option>
+        <option value="false">Desactivado</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('couponModal')">Cancelar</button>
+      <button class="btn-save" onclick="saveCoupon()">Guardar Cupón</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ═══════════════════════════════════════
+   TONYSHOP ADMIN PANEL
+   ═══════════════════════════════════════ */
+
+var PLANS_MAP = {
+  'mxvip-2semanas': { name: 'MX VIP 2 Semanas', price: 150 },
+  'mxvip-1mes': { name: 'MX VIP 1 Mes', price: 250 },
+  'mxvip-4meses': { name: 'MX VIP 4 Meses', price: 400 },
+  'mxvip-permanente': { name: 'MX VIP Permanente', price: 1000 },
+  'darkhub': { name: 'DarkHub', price: 200 }
+};
+
+var data = { active_offers: [], coupons: [] };
+
+// ── AUTH ──
+var DEFAULT_PASS = 'tony2024';
+
+function getPassword() {
+  return localStorage.getItem('ts_admin_pass') || DEFAULT_PASS;
+}
+
+function attemptLogin() {
+  var pass = document.getElementById('loginPassword').value;
+  if (pass === getPassword()) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('adminWrap').classList.add('active');
+    sessionStorage.setItem('ts_admin_auth', '1');
+    loadData();
+  } else {
+    var err = document.getElementById('loginError');
+    err.style.display = 'block';
+    document.getElementById('loginPassword').value = '';
+    setTimeout(function() { err.style.display = 'none'; }, 3000);
+  }
+}
+
+document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') attemptLogin();
+});
+
+function logout() {
+  sessionStorage.removeItem('ts_admin_auth');
+  location.reload();
+}
+
+function changePassword() {
+  var np = document.getElementById('newPassword').value.trim();
+  if (np.length < 4) { toast('Mínimo 4 caracteres', 'error'); return; }
+  localStorage.setItem('ts_admin_pass', np);
+  document.getElementById('newPassword').value = '';
+  toast('Contraseña actualizada', 'success');
+}
+
+// Auto-login if session active
+if (sessionStorage.getItem('ts_admin_auth') === '1') {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('adminWrap').classList.add('active');
+  setTimeout(loadData, 100);
+}
+
+// ── DATA ──
+function loadData() {
+  var stored = localStorage.getItem('ts_offers_data');
+  if (stored) {
+    try { data = JSON.parse(stored); } catch(e) { data = { active_offers: [], coupons: [] }; }
+  }
+  renderOffers();
+  renderCoupons();
+  loadGitHubSettings();
+}
+
+function saveData() {
+  localStorage.setItem('ts_offers_data', JSON.stringify(data));
+  renderOffers();
+  renderCoupons();
+}
+
+function generateId() {
+  return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ── RENDER OFFERS ──
+function renderOffers() {
+  var container = document.getElementById('offersList');
+  document.getElementById('offersCount').textContent = data.active_offers.length;
+  if (data.active_offers.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏷️</div><p>No hay ofertas creadas.<br>Crea una nueva oferta para comenzar.</p></div>';
+    return;
+  }
+  var html = '';
+  data.active_offers.forEach(function(offer) {
+    var status = getOfferStatus(offer);
+    var statusClass = status === 'Activa' ? 'status-active' : status === 'Expirada' ? 'status-expired' : status === 'Programada' ? 'status-scheduled' : 'status-inactive';
+    var cardClass = status === 'Activa' ? 'active-offer' : status === 'Expirada' ? 'expired-offer' : status === 'Programada' ? 'scheduled-offer' : '';
+    var endTime = new Date(new Date(offer.start_time).getTime() + offer.duration_hours * 3600000);
+    var discountText = offer.discount_type === 'percentage' ? offer.discount_value + '%' : '$' + offer.discount_value + ' MXN';
+
+    html += '<div class="offer-card ' + cardClass + '">';
+    html += '<div class="card-header"><div class="card-header-left">';
+    html += '<span class="card-label">' + escapeHtml(offer.label) + '</span>';
+    html += '<span class="card-status ' + statusClass + '">' + status + '</span>';
+    html += '</div><div class="card-actions">';
+    html += '<button class="card-btn card-btn-edit" onclick="editOffer(\'' + offer.id + '\')">Editar</button>';
+    html += '<button class="card-btn card-btn-toggle" onclick="toggleOffer(\'' + offer.id + '\')">' + (offer.enabled ? 'Desactivar' : 'Activar') + '</button>';
+    html += '<button class="card-btn card-btn-delete" onclick="deleteOffer(\'' + offer.id + '\')">Eliminar</button>';
+    html += '</div></div>';
+    html += '<div class="card-details">';
+    html += '<div class="card-detail"><div class="card-detail-label">Descuento</div><div class="card-detail-value">' + discountText + '</div></div>';
+    html += '<div class="card-detail"><div class="card-detail-label">Duración</div><div class="card-detail-value">' + offer.duration_hours + 'h</div></div>';
+    html += '<div class="card-detail"><div class="card-detail-label">Inicio</div><div class="card-detail-value">' + formatDate(offer.start_time) + '</div></div>';
+    html += '<div class="card-detail"><div class="card-detail-label">Fin</div><div class="card-detail-value">' + formatDate(endTime.toISOString()) + '</div></div>';
+    html += '</div>';
+    if (offer.applicable_plans && offer.applicable_plans.length > 0) {
+      html += '<div class="plan-tags" style="margin-top:10px">';
+      offer.applicable_plans.forEach(function(p) {
+        html += '<span class="plan-tag">' + (PLANS_MAP[p] ? PLANS_MAP[p].name : p) + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function getOfferStatus(offer) {
+  if (!offer.enabled) return 'Desactivada';
+  var now = Date.now();
+  var start = new Date(offer.start_time).getTime();
+  var end = start + offer.duration_hours * 3600000;
+  if (now < start) return 'Programada';
+  if (now > end) return 'Expirada';
+  return 'Activa';
+}
+
+// ── RENDER COUPONS ──
+function renderCoupons() {
+  var container = document.getElementById('couponsList');
+  document.getElementById('couponsCount').textContent = data.coupons.length;
+  if (data.coupons.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎟️</div><p>No hay cupones creados.<br>Crea un nuevo cupón para comenzar.</p></div>';
+    return;
+  }
+  var html = '';
+  data.coupons.forEach(function(coupon) {
+    var status = getCouponStatus(coupon);
+    var statusClass = status === 'Activo' ? 'status-active' : status === 'Expirado' ? 'status-expired' : 'status-inactive';
+    var discountText = coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : '$' + coupon.discount_value + ' MXN';
+
+    html += '<div class="coupon-card">';
+    html += '<div class="card-header"><div class="card-header-left">';
+    html += '<span class="card-label" style="font-family:monospace;letter-spacing:2px">' + escapeHtml(coupon.code) + '</span>';
+    html += '<span class="card-status ' + statusClass + '">' + status + '</span>';
+    html += '</div><div class="card-actions">';
+    html += '<button class="card-btn card-btn-edit" onclick="editCoupon(\'' + coupon.id + '\')">Editar</button>';
+    html += '<button class="card-btn card-btn-toggle" onclick="toggleCoupon(\'' + coupon.id + '\')">' + (coupon.enabled ? 'Desactivar' : 'Activar') + '</button>';
+    html += '<button class="card-btn card-btn-delete" onclick="deleteCoupon(\'' + coupon.id + '\')">Eliminar</button>';
+    html += '</div></div>';
+    html += '<div class="card-details">';
+    html += '<div class="card-detail"><div class="card-detail-label">Descuento</div><div class="card-detail-value">' + discountText + '</div></div>';
+    html += '<div class="card-detail"><div class="card-detail-label">Usos máx.</div><div class="card-detail-value">' + (coupon.max_uses || '∞') + '</div></div>';
+    html += '<div class="card-detail"><div class="card-detail-label">Usos actuales</div><div class="card-detail-value">' + (coupon.current_uses || 0) + '</div></div>';
+    html += '<div class="card-detail"><div class="card-detail-label">Expira</div><div class="card-detail-value">' + (coupon.expires || 'Nunca') + '</div></div>';
+    html += '</div>';
+    if (coupon.applicable_plans && coupon.applicable_plans.length > 0) {
+      html += '<div class="plan-tags" style="margin-top:10px">';
+      coupon.applicable_plans.forEach(function(p) {
+        html += '<span class="plan-tag">' + (PLANS_MAP[p] ? PLANS_MAP[p].name : p) + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function getCouponStatus(coupon) {
+  if (!coupon.enabled) return 'Desactivado';
+  if (coupon.expires && new Date(coupon.expires) < new Date()) return 'Expirado';
+  if (coupon.max_uses && (coupon.current_uses || 0) >= coupon.max_uses) return 'Agotado';
+  return 'Activo';
+}
+
+// ── MODALS ──
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function openOfferModal() {
+  document.getElementById('offerModalTitle').textContent = 'Nueva Oferta';
+  document.getElementById('offerEditId').value = '';
+  document.getElementById('offerLabel').value = '';
+  document.getElementById('offerType').value = 'percentage';
+  document.getElementById('offerValue').value = '';
+  document.getElementById('offerStart').value = toLocalDatetime(new Date());
+  document.getElementById('offerDuration').value = '24';
+  document.getElementById('offerEnabled').value = 'true';
+  clearCheckboxes('offerPlans');
+  openModal('offerModal');
+}
+
+function openCouponModal() {
+  document.getElementById('couponModalTitle').textContent = 'Nuevo Cupón';
+  document.getElementById('couponEditId').value = '';
+  document.getElementById('couponCode').value = '';
+  document.getElementById('couponType').value = 'percentage';
+  document.getElementById('couponValue').value = '';
+  document.getElementById('couponMaxUses').value = '';
+  document.getElementById('couponExpires').value = '';
+  document.getElementById('couponEnabled').value = 'true';
+  clearCheckboxes('couponPlans');
+  openModal('couponModal');
+}
+
+// ── SAVE OFFER ──
+function saveOffer() {
+  var label = document.getElementById('offerLabel').value.trim();
+  var type = document.getElementById('offerType').value;
+  var value = parseInt(document.getElementById('offerValue').value);
+  var start = document.getElementById('offerStart').value;
+  var duration = parseInt(document.getElementById('offerDuration').value);
+  var enabled = document.getElementById('offerEnabled').value === 'true';
+  var plans = getCheckedPlans('offerPlans');
+
+  if (!label || !value || !start || !duration) {
+    toast('Completa todos los campos', 'error'); return;
+  }
+
+  var editId = document.getElementById('offerEditId').value;
+  if (editId) {
+    var idx = data.active_offers.findIndex(function(o) { return o.id === editId; });
+    if (idx >= 0) {
+      data.active_offers[idx] = {
+        id: editId, label: label, discount_type: type, discount_value: value,
+        start_time: new Date(start).toISOString(), duration_hours: duration,
+        applicable_plans: plans, enabled: enabled
+      };
+    }
+  } else {
+    data.active_offers.push({
+      id: generateId(), label: label, discount_type: type, discount_value: value,
+      start_time: new Date(start).toISOString(), duration_hours: duration,
+      applicable_plans: plans, enabled: enabled
+    });
+  }
+  saveData();
+  closeModal('offerModal');
+  toast(editId ? 'Oferta actualizada' : 'Oferta creada', 'success');
+}
+
+function editOffer(id) {
+  var offer = data.active_offers.find(function(o) { return o.id === id; });
+  if (!offer) return;
+  document.getElementById('offerModalTitle').textContent = 'Editar Oferta';
+  document.getElementById('offerEditId').value = id;
+  document.getElementById('offerLabel').value = offer.label;
+  document.getElementById('offerType').value = offer.discount_type;
+  document.getElementById('offerValue').value = offer.discount_value;
+  document.getElementById('offerStart').value = toLocalDatetime(new Date(offer.start_time));
+  document.getElementById('offerDuration').value = offer.duration_hours;
+  document.getElementById('offerEnabled').value = offer.enabled ? 'true' : 'false';
+  setCheckedPlans('offerPlans', offer.applicable_plans || []);
+  openModal('offerModal');
+}
+
+function toggleOffer(id) {
+  var offer = data.active_offers.find(function(o) { return o.id === id; });
+  if (offer) { offer.enabled = !offer.enabled; saveData(); toast('Oferta ' + (offer.enabled ? 'activada' : 'desactivada'), 'info'); }
+}
+
+function deleteOffer(id) {
+  if (!confirm('¿Eliminar esta oferta?')) return;
+  data.active_offers = data.active_offers.filter(function(o) { return o.id !== id; });
+  saveData();
+  toast('Oferta eliminada', 'success');
+}
+
+// ── SAVE COUPON ──
+function saveCoupon() {
+  var code = document.getElementById('couponCode').value.trim().toUpperCase();
+  var type = document.getElementById('couponType').value;
+  var value = parseInt(document.getElementById('couponValue').value);
+  var maxUses = document.getElementById('couponMaxUses').value ? parseInt(document.getElementById('couponMaxUses').value) : null;
+  var expires = document.getElementById('couponExpires').value || null;
+  var enabled = document.getElementById('couponEnabled').value === 'true';
+  var plans = getCheckedPlans('couponPlans');
+
+  if (!code || !value) {
+    toast('Completa todos los campos obligatorios', 'error'); return;
+  }
+
+  var editId = document.getElementById('couponEditId').value;
+  if (editId) {
+    var idx = data.coupons.findIndex(function(c) { return c.id === editId; });
+    if (idx >= 0) {
+      var currentUses = data.coupons[idx].current_uses || 0;
+      data.coupons[idx] = {
+        id: editId, code: code, discount_type: type, discount_value: value,
+        max_uses: maxUses, current_uses: currentUses, expires: expires,
+        applicable_plans: plans.length > 0 ? plans : null, enabled: enabled
+      };
+    }
+  } else {
+    data.coupons.push({
+      id: generateId(), code: code, discount_type: type, discount_value: value,
+      max_uses: maxUses, current_uses: 0, expires: expires,
+      applicable_plans: plans.length > 0 ? plans : null, enabled: enabled
+    });
+  }
+  saveData();
+  closeModal('couponModal');
+  toast(editId ? 'Cupón actualizado' : 'Cupón creado', 'success');
+}
+
+function editCoupon(id) {
+  var coupon = data.coupons.find(function(c) { return c.id === id; });
+  if (!coupon) return;
+  document.getElementById('couponModalTitle').textContent = 'Editar Cupón';
+  document.getElementById('couponEditId').value = id;
+  document.getElementById('couponCode').value = coupon.code;
+  document.getElementById('couponType').value = coupon.discount_type;
+  document.getElementById('couponValue').value = coupon.discount_value;
+  document.getElementById('couponMaxUses').value = coupon.max_uses || '';
+  document.getElementById('couponExpires').value = coupon.expires || '';
+  document.getElementById('couponEnabled').value = coupon.enabled ? 'true' : 'false';
+  setCheckedPlans('couponPlans', coupon.applicable_plans || []);
+  openModal('couponModal');
+}
+
+function toggleCoupon(id) {
+  var coupon = data.coupons.find(function(c) { return c.id === id; });
+  if (coupon) { coupon.enabled = !coupon.enabled; saveData(); toast('Cupón ' + (coupon.enabled ? 'activado' : 'desactivado'), 'info'); }
+}
+
+function deleteCoupon(id) {
+  if (!confirm('¿Eliminar este cupón?')) return;
+  data.coupons = data.coupons.filter(function(c) { return c.id !== id; });
+  saveData();
+  toast('Cupón eliminado', 'success');
+}
+
+// ── GITHUB DEPLOY ──
+function saveGitHubSettings() {
+  var repo = document.getElementById('ghRepo').value.trim();
+  var token = document.getElementById('ghToken').value.trim();
+  var branch = document.getElementById('ghBranch').value.trim() || 'main';
+  if (!repo || !token) { toast('Completa repo y token', 'error'); return; }
+  localStorage.setItem('ts_gh_repo', repo);
+  localStorage.setItem('ts_gh_token', token);
+  localStorage.setItem('ts_gh_branch', branch);
+  toast('Configuración GitHub guardada', 'success');
+}
+
+function loadGitHubSettings() {
+  document.getElementById('ghRepo').value = localStorage.getItem('ts_gh_repo') || '';
+  document.getElementById('ghToken').value = localStorage.getItem('ts_gh_token') || '';
+  document.getElementById('ghBranch').value = localStorage.getItem('ts_gh_branch') || 'main';
+}
+
+async function deployChanges() {
+  var repo = localStorage.getItem('ts_gh_repo');
+  var token = localStorage.getItem('ts_gh_token');
+  var branch = localStorage.getItem('ts_gh_branch') || 'main';
+
+  if (!repo || !token) {
+    toast('Configura GitHub primero (pestaña Configuración)', 'error');
+    return;
+  }
+
+  var btn = document.getElementById('deployBtn');
+  btn.textContent = 'Desplegando...';
+  btn.disabled = true;
+
+  try {
+    var jsonContent = JSON.stringify(data, null, 2);
+    var encoded = btoa(unescape(encodeURIComponent(jsonContent)));
+
+    // Get current file SHA (if exists)
+    var sha = null;
+    try {
+      var getResp = await fetch('https://api.github.com/repos/' + repo + '/contents/offers.json?ref=' + branch, {
+        headers: { 'Authorization': 'token ' + token }
+      });
+      if (getResp.ok) {
+        var getJson = await getResp.json();
+        sha = getJson.sha;
+      }
+    } catch(e) {}
+
+    var body = {
+      message: 'Update offers.json via TonyShop Admin',
+      content: encoded,
+      branch: branch
+    };
+    if (sha) body.sha = sha;
+
+    var resp = await fetch('https://api.github.com/repos/' + repo + '/contents/offers.json', {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (resp.ok) {
+      toast('Desplegado exitosamente en GitHub', 'success');
+    } else {
+      var errData = await resp.json();
+      toast('Error: ' + (errData.message || 'Fallo en deploy'), 'error');
+    }
+  } catch(err) {
+    toast('Error de conexión: ' + err.message, 'error');
+  }
+
+  btn.textContent = 'Guardar y Desplegar';
+  btn.disabled = false;
+}
+
+// ── EXPORT / IMPORT ──
+function exportData() {
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tonyshop-offers-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  toast('Datos exportados', 'success');
+}
+
+function importData(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var imported = JSON.parse(e.target.result);
+      if (imported.active_offers && imported.coupons) {
+        data = imported;
+        saveData();
+        toast('Datos importados correctamente', 'success');
+      } else {
+        toast('Formato de archivo inválido', 'error');
+      }
+    } catch(err) {
+      toast('Error al leer archivo', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── HELPERS ──
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatDate(isoStr) {
+  var d = new Date(isoStr);
+  return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+         d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+}
+
+function toLocalDatetime(date) {
+  var d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+
+function getCheckedPlans(groupId) {
+  var plans = [];
+  document.querySelectorAll('#' + groupId + ' input[type=checkbox]').forEach(function(cb) {
+    if (cb.checked) plans.push(cb.value);
+  });
+  return plans;
+}
+
+function setCheckedPlans(groupId, plans) {
+  document.querySelectorAll('#' + groupId + ' .checkbox-label').forEach(function(label) {
+    var cb = label.querySelector('input');
+    cb.checked = plans.indexOf(cb.value) >= 0;
+    label.classList.toggle('checked', cb.checked);
+  });
+}
+
+function clearCheckboxes(groupId) {
+  document.querySelectorAll('#' + groupId + ' .checkbox-label').forEach(function(label) {
+    label.querySelector('input').checked = false;
+    label.classList.remove('checked');
+  });
+}
+
+// Checkbox toggle visual
+document.querySelectorAll('.checkbox-label').forEach(function(label) {
+  label.addEventListener('click', function(e) {
+    if (e.target.tagName === 'INPUT') return;
+    var cb = this.querySelector('input');
+    cb.checked = !cb.checked;
+    this.classList.toggle('checked', cb.checked);
+  });
+});
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+});
+
+// Toast notification
+function toast(message, type) {
+  var container = document.getElementById('toastContainer');
+  var t = document.createElement('div');
+  t.className = 'toast toast-' + (type || 'info');
+  t.innerHTML = (type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ') + ' ' + message;
+  container.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
+
+function toggleOfferFields() {}
+</script>
+</body>
+</html>
