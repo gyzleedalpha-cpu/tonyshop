@@ -1,27 +1,4 @@
 {
-  "active_offers": [
-    {
-      "id": "id_1776128079416_srmx2",
-      "label": "20 oof 3 horas",
-      "discount_type": "percentage",
-      "discount_value": 20,
-      "start_time": "2026-04-14T00:54:00.000Z",
-      "duration_hours": 3,
-      "applicable_plans": [],
-      "enabled": true
-    }
-  ],
-  "coupons": [
-    {
-      "id": "coupon_welcome_001",
-      "code": "WELCOME20",
-      "discount_type": "percentage",
-      "discount_value": 20,
-      "max_uses": 100,
-      "current_uses": 0,
-      "expires": "2026-12-31",
-      "applicable_plans": null,
-      "enabled": true
-    }
-  ]
+  "active_offers": [],
+  "coupons": []
 }
