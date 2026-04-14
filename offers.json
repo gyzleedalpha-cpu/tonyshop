@@ -1,4 +1,15 @@
 {
-  "active_offers": [],
+  "active_offers": [
+    {
+      "id": "id_1776128079416_srmx2",
+      "label": "20 oof 3 horas",
+      "discount_type": "percentage",
+      "discount_value": 20,
+      "start_time": "2026-04-14T00:54:00.000Z",
+      "duration_hours": 3,
+      "applicable_plans": [],
+      "enabled": true
+    }
+  ],
   "coupons": []
 }
