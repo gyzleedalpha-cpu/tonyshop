@@ -1659,7 +1659,7 @@
   ============================================= */
   (function() {
     var counter = document.getElementById('price-counter');
-    var target = 1000;
+    var target = 800;
     var duration = 2000;
     var startTime = null;
     var started = false;
@@ -1976,7 +1976,7 @@
 /* ── OFFERS & COUPONS SYSTEM ── */
 (function() {
   var PLAN_ID = 'mxvip-permanente';
-  var BASE_PRICE = 1000;
+  var BASE_PRICE = 800;
   var activeOffer = null;
   var appliedCoupon = null;
   function loadOffersData() { var stored = localStorage.getItem('ts_offers_data'); if (stored) { try { return JSON.parse(stored); } catch(e) {} } return null; }
@@ -2046,7 +2046,7 @@
   var switcher = document.getElementById('currency-switcher');
   var btn = document.getElementById('currency-btn');
   var options = document.querySelectorAll('.currency-option');
-  var BASE_PRICE = 1000;
+  var BASE_PRICE = 800;
 
   function formatPrice(amount, currency) {
     if (currency === 'USD') return '$' + amount.toFixed(2);
