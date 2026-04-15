@@ -24,11 +24,7 @@
     font-family: 'Sora', sans-serif; background: var(--black); color: var(--white);
     overflow-x: hidden; cursor: none; opacity: 0; animation: pageLoad 1.2s ease 0.1s forwards;
   }
-  @keyframes pageLoad {
-    0% { opacity: 0; filter: blur(8px) brightness(0.5); }
-    50% { filter: blur(2px) brightness(0.8); }
-    100% { opacity: 1; filter: blur(0) brightness(1); }
-  }
+  @keyframes pageLoad { to { opacity: 1; } }
 
   /* ── 2. NOISE OVERLAY ──────────────────────── */
   body::before {
