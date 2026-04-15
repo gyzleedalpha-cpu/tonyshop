@@ -1660,7 +1660,7 @@
           <div class="card-offer-badge"></div>
           <div class="dh-tag" style="color:#60a5fa;">Acceso Permanente</div>
           <div class="card-original-price"></div>
-          <div class="dh-price">$150 <span class="temp-currency">MXN</span></div>
+          <div class="dh-price">$200 <span class="temp-currency">MXN</span></div>
           <div class="card-offer-countdown"></div>
           <div class="dh-desc">Pago único · Acceso de por vida · Sin renovaciones</div>
         </div>
@@ -2468,7 +2468,7 @@
   (function() {
     var PLAN_PRICES = {
       'mxvip-2semanas': 150, 'mxvip-1mes': 250,
-      'mxvip-permanente': 1000, 'darkhub': 200, 'tonyfans': 150
+      'mxvip-permanente': 1000, 'darkhub': 200, 'tonyfans': 200
     };
 
     function loadOffersData() {
@@ -2548,9 +2548,9 @@
     const priceMap = [
       { el: null, selector: '.temp-card:nth-child(1) .temp-price', base: 150 },
       { el: null, selector: '.temp-card:nth-child(2) .temp-price', base: 250 },
-      { el: null, selector: '.temp-card:nth-child(3) .temp-price', base: 400 },
-      { el: null, selector: '.temp-card:nth-child(4) .temp-price', base: 1000 },
-      { el: null, selector: '.dh-price', base: 200 },
+      { el: null, selector: '.temp-card:nth-child(3) .temp-price', base: 1000 },
+      { el: null, selector: '[data-plan="tonyfans"] .dh-price', base: 200 },
+      { el: null, selector: '[data-plan="darkhub"] .dh-price', base: 200 },
     ];
     priceMap.forEach(p => { p.el = document.querySelector(p.selector); });
 

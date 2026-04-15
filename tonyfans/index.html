@@ -853,7 +853,7 @@
           <div class="step-number">01</div>
           <span class="step-icon">&#128179;</span>
           <h3>Realiza tu pago</h3>
-          <p>Paga $150 MXN una sola vez por cualquier m&eacute;todo disponible.</p>
+          <p>Paga $200 MXN una sola vez por cualquier m&eacute;todo disponible.</p>
         </div>
         <div class="step-item">
           <div class="step-number">02</div>
@@ -884,7 +884,7 @@
   <div class="expect-section reveal">
     <h2 class="expect-title">&iquest;Qu&eacute; vas a <span>encontrar</span>?</h2>
     <p class="expect-text">
-      <strong>TonyFans</strong> es la forma m&aacute;s inteligente de acceder a contenido de OnlyFans sin pagar m&uacute;ltiples suscripciones. Con solo <strong>$150 MXN de pago &uacute;nico</strong> obtienes acceso a un grupo de Telegram donde se comparte el contenido de los 4 OnlyFans que t&uacute; eliges, m&aacute;s el contenido elegido por toda la comunidad de TonyFans.<br><br>
+      <strong>TonyFans</strong> es la forma m&aacute;s inteligente de acceder a contenido de OnlyFans sin pagar m&uacute;ltiples suscripciones. Con solo <strong>$200 MXN de pago &uacute;nico</strong> obtienes acceso a un grupo de Telegram donde se comparte el contenido de los 4 OnlyFans que t&uacute; eliges, m&aacute;s el contenido elegido por toda la comunidad de TonyFans.<br><br>
       Mientras m&aacute;s miembros se unan, m&aacute;s contenido disponible habr&aacute; para todos. Tony se encarga de conseguir y subir el contenido, t&uacute; solo disfruta.
     </p>
   </div>
@@ -967,7 +967,7 @@
     <h2>&iquest;Listo para unirte a <span>TonyFans</span>?</h2>
     <p>Pago &uacute;nico de por vida. Elige tus 4 OnlyFans y disfruta del mejor contenido.</p>
     <button class="buy-btn magnetic-btn" onclick="openPayModal()">
-      <span class="btn-text">&#128179; Comprar &mdash; $150 MXN</span>
+      <span class="btn-text">&#128179; Comprar &mdash; $200 MXN</span>
       <div class="spinner"></div>
     </button>
     <div class="stripe-error" id="stripe-error-bottom"></div>
@@ -988,12 +988,12 @@
   <div class="pay-modal">
     <button class="pay-modal-close" onclick="closePayModal()">&#10005;</button>
     <div class="pay-modal-title">&iquest;C&oacute;mo quieres pagar?</div>
-    <div class="pay-modal-sub">Total: <span>$150 MXN</span> &middot; Pago &uacute;nico</div>
+    <div class="pay-modal-sub">Total: <span>$200 MXN</span> &middot; Pago &uacute;nico</div>
     <div class="discount-summary" id="discountSummary"></div>
     <div class="pay-modal-badge">&#128274; Transacci&oacute;n segura</div>
 
     <!-- Stripe -->
-    <a class="pay-method" href="https://buy.stripe.com/5kQaEWfDP3RQ09tdn02ZO0b" target="_blank">
+    <a class="pay-method" href="https://buy.stripe.com/bJedR8ajv8866xR96K2ZO0k" target="_blank">
       <div class="pay-method-icon" style="background:rgba(37,99,235,0.15);">&#128179;</div>
       <div class="pay-method-info">
         <div class="pay-method-name">Tarjeta de d&eacute;bito / cr&eacute;dito</div>
@@ -1140,7 +1140,7 @@
 
   // ── ANIMATED PRICE COUNTER ────────────────────
   (function() {
-    var target = 150;
+    var target = 200;
     var el = document.getElementById('priceCounter');
     var started = false;
 
@@ -1294,7 +1294,7 @@
   /* ── OFFERS & COUPONS SYSTEM ── */
   (function() {
     var PLAN_ID = 'tonyfans';
-    var BASE_PRICE = 150;
+    var BASE_PRICE = 200;
     var activeOffer = null;
     var appliedCoupon = null;
     function loadOffersData() { var stored = localStorage.getItem('ts_offers_data'); if (stored) { try { return JSON.parse(stored); } catch(e) {} } return null; }
@@ -1364,7 +1364,7 @@
     var switcher = document.getElementById('currency-switcher');
     var btn = document.getElementById('currency-btn');
     var options = document.querySelectorAll('.currency-option');
-    var BASE_PRICE = 150;
+    var BASE_PRICE = 200;
 
     function formatPrice(amount, currency) {
       if (currency === 'USD') return '$' + amount.toFixed(2);
