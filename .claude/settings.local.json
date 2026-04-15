@@ -3,7 +3,16 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "WebSearch",
+      "Bash(sed -i '' 's|href=\"mxvip-1mes\\\\.html\"|href=\"/mxvip-1mes\"|g' index.html)",
+      "Bash(sed -i '' 's|href=\"mxvip-2semanas\\\\.html\"|href=\"/mxvip-2semanas\"|g' index.html)",
+      "Bash(sed -i '' 's|href=\"mxvip-4meses\\\\.html\"|href=\"/mxvip-4meses\"|g' index.html)",
+      "Bash(sed -i '' 's|href=\"mxvip-permanente\\\\.html\"|href=\"/mxvip-permanente\"|g' index.html)",
+      "Bash(sed -i '' 's|href=\"darkhub\\\\.html\"|href=\"/darkhub\"|g' index.html)",
+      "Bash(git rm:*)"
     ]
   }
 }

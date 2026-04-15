@@ -1621,7 +1621,7 @@
           <div class="temp-price">$150 <span class="temp-currency">MXN</span></div>
           <div class="card-offer-countdown"></div>
           <div class="temp-tag">Pruébalo sin compromiso</div>
-          <a class="plan-btn plan-btn-outline" href="mxvip-2semanas.html">Obtener acceso</a>
+          <a class="plan-btn plan-btn-outline" href="/mxvip-2semanas">Obtener acceso</a>
         </div>
         <div class="temp-card reveal" data-plan="mxvip-1mes">
           <div class="card-offer-badge"></div>
@@ -1630,7 +1630,7 @@
           <div class="temp-price">$250 <span class="temp-currency">MXN</span></div>
           <div class="card-offer-countdown"></div>
           <div class="temp-tag">El más elegido</div>
-          <a class="plan-btn plan-btn-outline" href="mxvip-1mes.html">Obtener acceso</a>
+          <a class="plan-btn plan-btn-outline" href="/mxvip-1mes">Obtener acceso</a>
         </div>
         <div class="temp-card reveal" data-plan="mxvip-4meses">
           <div class="card-offer-badge"></div>
@@ -1639,7 +1639,7 @@
           <div class="temp-price">$400 <span class="temp-currency">MXN</span></div>
           <div class="card-offer-countdown"></div>
           <div class="temp-tag">Mejor precio por mes</div>
-          <a class="plan-btn plan-btn-outline" href="mxvip-4meses.html">Obtener acceso</a>
+          <a class="plan-btn plan-btn-outline" href="/mxvip-4meses">Obtener acceso</a>
         </div>
         <div class="temp-card temp-featured reveal" data-plan="mxvip-permanente">
           <div class="card-offer-badge"></div>
@@ -1649,7 +1649,7 @@
           <div class="temp-price">$1,000 <span class="temp-currency">MXN</span></div>
           <div class="card-offer-countdown"></div>
           <div class="temp-tag">Paga una vez, accede siempre</div>
-          <a class="plan-btn plan-btn-solid" href="mxvip-permanente.html">Obtener acceso</a>
+          <a class="plan-btn plan-btn-solid" href="/mxvip-permanente">Obtener acceso</a>
         </div>
       </div>
     </div>
@@ -1679,7 +1679,7 @@
             <li>Acceso permanente garantizado</li>
             <li>Contenido de toda la comunidad</li>
           </ul>
-          <a class="plan-btn dh-btn" href="tonyfans.html" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); box-shadow:0 0 30px rgba(59,130,246,0.3);">Entrar a TonyFans →</a>
+          <a class="plan-btn dh-btn" href="/tonyfans" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); box-shadow:0 0 30px rgba(59,130,246,0.3);">Entrar a TonyFans →</a>
         </div>
       </div>
     </div>
@@ -1709,7 +1709,7 @@
             <li>Acceso permanente garantizado</li>
             <li>Soporte directo con Tony</li>
           </ul>
-          <a class="plan-btn dh-btn" href="darkhub.html">Entrar al DarkHub →</a>
+          <a class="plan-btn dh-btn" href="/darkhub">Entrar al DarkHub →</a>
         </div>
       </div>
     </div>
@@ -2480,7 +2480,7 @@
     };
 
     function loadOffersData() {
-      return fetch('offers.json')
+      return fetch('/offers.json')
         .then(r => r.json())
         .catch(() => null);
     }
