@@ -51,14 +51,14 @@
 
   /* ── AMBIENT GLOW ──────────────────────────── */
   .ambient-glow {
-    position: fixed; width: 500px; height: 500px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
-    pointer-events: none; z-index: 0; filter: blur(60px);
+    position: fixed; width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,0.13) 0%, rgba(124,58,237,0.06) 35%, rgba(124,58,237,0.02) 60%, transparent 75%);
+    pointer-events: none; z-index: 0;
     animation: ambientMove 15s ease-in-out infinite alternate;
   }
   .ambient-glow-2 {
     animation-delay: -7s; animation-duration: 18s;
-    background: radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(167,139,250,0.10) 0%, rgba(167,139,250,0.04) 35%, rgba(167,139,250,0.01) 60%, transparent 75%);
   }
   @keyframes ambientMove {
     0% { transform: translate(0, 0); }
