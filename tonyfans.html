@@ -616,20 +616,21 @@
   /* ── CUSTOM CURSOR ─────────────────────────── */
   .cursor-dot {
     position: fixed; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--blue); z-index: 99999; pointer-events: none;
+    background: var(--blue); z-index: 2147483647; pointer-events: none;
     transition: transform 0.1s ease;
     box-shadow: 0 0 10px rgba(59,130,246,0.7);
   }
   .cursor-ring {
     position: fixed; width: 36px; height: 36px; border-radius: 50%;
     border: 1.5px solid rgba(59,130,246,0.4);
-    z-index: 99998; pointer-events: none;
+    z-index: 2147483646; pointer-events: none;
     transition: width 0.3s, height 0.3s, border-color 0.3s;
   }
   .cursor-trail {
     position: fixed; width: 4px; height: 4px; border-radius: 50%;
-    background: rgba(59,130,246,0.3); z-index: 99997; pointer-events: none;
+    background: rgba(59,130,246,0.3); z-index: 2147483645; pointer-events: none;
   }
+  * { cursor: none !important; }
   @media (hover: none) {
     .cursor-dot, .cursor-ring, .cursor-trail { display: none; }
     body { cursor: auto; }
